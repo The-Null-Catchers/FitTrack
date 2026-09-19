@@ -86,9 +86,7 @@ async def start_session(
 
 
 @router.get("/{session_id}", response_model=SessionRead, summary="Workout detail")
-async def get_session(
-    session_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> SessionRead:
+async def get_session(session_id: uuid.UUID, db: DbSession, user: CurrentUser) -> SessionRead:
     session = await workout_service.get_for_user(db, session_id, user)
     return SessionRead(**await workout_service.build_detail(db, session, user))
 
@@ -104,9 +102,7 @@ async def update_session(
     return SessionRead(**await workout_service.build_detail(db, session, user))
 
 
-@router.post(
-    "/{session_id}/finish", response_model=SessionRead, summary="Finish a workout"
-)
+@router.post("/{session_id}/finish", response_model=SessionRead, summary="Finish a workout")
 async def finish_session(
     session_id: uuid.UUID,
     payload: SessionFinishRequest,
@@ -126,9 +122,7 @@ async def finish_session(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Abandon a workout in progress",
 )
-async def discard_session(
-    session_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> Response:
+async def discard_session(session_id: uuid.UUID, db: DbSession, user: CurrentUser) -> Response:
     await workout_service.discard(db, session_id, user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -139,19 +133,13 @@ async def discard_session(
     status_code=status.HTTP_201_CREATED,
     summary="Repeat a past workout",
 )
-async def duplicate_session(
-    session_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> SessionRead:
+async def duplicate_session(session_id: uuid.UUID, db: DbSession, user: CurrentUser) -> SessionRead:
     session = await workout_service.duplicate(db, session_id, user)
     return SessionRead(**await workout_service.build_detail(db, session, user))
 
 
-@router.delete(
-    "/{session_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a workout"
-)
-async def delete_session(
-    session_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> Response:
+@router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a workout")
+async def delete_session(session_id: uuid.UUID, db: DbSession, user: CurrentUser) -> Response:
     await workout_service.delete_session(db, session_id, user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -221,7 +209,7 @@ async def replace_exercise(
     return SessionRead(**await workout_service.build_detail(db, session, user))
 
 
-def _exercise_payload(item) -> SessionExerciseRead:  # noqa: ANN001 - ORM model
+def _exercise_payload(item) -> SessionExerciseRead:
     from app.services import exercise_service
 
     return SessionExerciseRead(
@@ -234,8 +222,7 @@ def _exercise_payload(item) -> SessionExerciseRead:  # noqa: ANN001 - ORM model
         target_snapshot=item.target_snapshot or {},
         exercise=exercise_service.serialize(item.exercise),
         sets=[
-            workout_service.serialize_set(s)
-            for s in sorted(item.sets, key=lambda s: s.set_number)
+            workout_service.serialize_set(s) for s in sorted(item.sets, key=lambda s: s.set_number)
         ],
     )
 
@@ -253,9 +240,7 @@ async def add_set(
     return _exercise_payload(item)
 
 
-@router.put(
-    "/sets/{set_id}", response_model=SessionExerciseRead, summary="Update a set"
-)
+@router.put("/sets/{set_id}", response_model=SessionExerciseRead, summary="Update a set")
 async def update_set(
     set_id: uuid.UUID, payload: SetWrite, db: DbSession, user: CurrentUser
 ) -> SessionExerciseRead:
@@ -263,12 +248,8 @@ async def update_set(
     return _exercise_payload(item)
 
 
-@router.delete(
-    "/sets/{set_id}", response_model=SessionExerciseRead, summary="Delete a set"
-)
-async def delete_set(
-    set_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> SessionExerciseRead:
+@router.delete("/sets/{set_id}", response_model=SessionExerciseRead, summary="Delete a set")
+async def delete_set(set_id: uuid.UUID, db: DbSession, user: CurrentUser) -> SessionExerciseRead:
     item = await workout_service.delete_set(db, set_id, user)
     return _exercise_payload(item)
 
@@ -288,9 +269,7 @@ async def previous_performance(
     )
 
 
-@records_router.get(
-    "", response_model=list[PersonalRecordRead], summary="Your personal records"
-)
+@records_router.get("", response_model=list[PersonalRecordRead], summary="Your personal records")
 async def list_records(
     db: DbSession,
     user: CurrentUser,
@@ -303,18 +282,12 @@ async def list_records(
     )
     for record in records:
         await db.refresh(record, ["exercise"])
-    return [
-        PersonalRecordRead(**workout_service.serialize_record(record)) for record in records
-    ]
+    return [PersonalRecordRead(**workout_service.serialize_record(record)) for record in records]
 
 
-@records_router.post(
-    "/acknowledge", summary="Mark record celebrations as seen"
-)
+@records_router.post("/acknowledge", summary="Mark record celebrations as seen")
 async def acknowledge_records(
     payload: ReorderRequest, db: DbSession, user: CurrentUser
 ) -> dict[str, int]:
-    count = await records_service.acknowledge(
-        db, user.id, [uuid.UUID(i) for i in payload.ids]
-    )
+    count = await records_service.acknowledge(db, user.id, [uuid.UUID(i) for i in payload.ids])
     return {"acknowledged": count}

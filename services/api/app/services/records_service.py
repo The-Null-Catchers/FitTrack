@@ -21,9 +21,7 @@ from app.services.metrics import epley_1rm
 EPSILON = 1e-6
 
 
-def _candidates(
-    tracking_type: str, sets: list[WorkoutSet]
-) -> dict[str, tuple[float, WorkoutSet]]:
+def _candidates(tracking_type: str, sets: list[WorkoutSet]) -> dict[str, tuple[float, WorkoutSet]]:
     """Best value per record type across a session's sets for one exercise."""
     working = [s for s in sets if s.counts_toward_records]
     if not working:
@@ -81,9 +79,7 @@ async def current_best(
     return {record_type: float(value) for record_type, value in rows}
 
 
-async def evaluate_session(
-    db: AsyncSession, session: WorkoutSession
-) -> list[PersonalRecord]:
+async def evaluate_session(db: AsyncSession, session: WorkoutSession) -> list[PersonalRecord]:
     """Detect and persist every PR set during ``session``.
 
     Called when a workout is finished (and again if it is later edited).
@@ -157,9 +153,7 @@ async def list_for_user(
     stmt = select(PersonalRecord).where(PersonalRecord.user_id == user_id)
     if exercise_id:
         stmt = stmt.where(PersonalRecord.exercise_id == exercise_id)
-    rows = list(
-        await db.scalars(stmt.order_by(PersonalRecord.achieved_at.desc()).limit(limit * 4))
-    )
+    rows = list(await db.scalars(stmt.order_by(PersonalRecord.achieved_at.desc()).limit(limit * 4)))
     if not current_only:
         return rows[:limit]
 
@@ -214,7 +208,9 @@ async def exercise_ids_with_records(db: AsyncSession, user_id: uuid.UUID) -> set
     return set(rows)
 
 
-async def session_record_count(db: AsyncSession, session_ids: list[uuid.UUID]) -> dict[uuid.UUID, int]:
+async def session_record_count(
+    db: AsyncSession, session_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, int]:
     """PR counts keyed by session id — one query for a whole history page."""
     if not session_ids:
         return {}
@@ -227,7 +223,11 @@ async def session_record_count(db: AsyncSession, session_ids: list[uuid.UUID]) -
 
 
 async def last_session_for_exercise(
-    db: AsyncSession, user_id: uuid.UUID, exercise_id: uuid.UUID, *, before_session_id: uuid.UUID | None = None
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    exercise_id: uuid.UUID,
+    *,
+    before_session_id: uuid.UUID | None = None,
 ) -> WorkoutSessionExercise | None:
     """The most recent completed performance of an exercise."""
     from app.models.enums import SessionStatus

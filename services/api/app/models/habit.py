@@ -31,9 +31,7 @@ class Habit(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     icon: Mapped[str] = mapped_column(String(40), default="check_circle", nullable=False)
     color: Mapped[str | None] = mapped_column(String(16), default=None)
-    frequency: Mapped[str] = mapped_column(
-        String(16), default=HabitFrequency.DAILY, nullable=False
-    )
+    frequency: Mapped[str] = mapped_column(String(16), default=HabitFrequency.DAILY, nullable=False)
     #: How many completions count as "done" for one period.
     target_count: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     target_value: Mapped[float | None] = mapped_column(Float, default=None)

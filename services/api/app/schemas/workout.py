@@ -28,8 +28,13 @@ class SetWrite(APIModel):
     def _require_a_value_when_completed(self) -> SetWrite:
         if self.is_completed and all(
             v is None
-            for v in (self.weight_kg, self.reps, self.duration_seconds, self.distance_m,
-                      self.calories)
+            for v in (
+                self.weight_kg,
+                self.reps,
+                self.duration_seconds,
+                self.distance_m,
+                self.calories,
+            )
         ):
             raise ValueError("A completed set needs at least one recorded value.")
         return self

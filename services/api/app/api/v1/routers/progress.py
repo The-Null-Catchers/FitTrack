@@ -54,16 +54,12 @@ async def list_weights(
     start_date: date | None = None,
     end_date: date | None = None,
 ) -> list[BodyWeightRead]:
-    rows = await body_service.list_weights(
-        db, user, start_date=start_date, end_date=end_date
-    )
+    rows = await body_service.list_weights(db, user, start_date=start_date, end_date=end_date)
     return [BodyWeightRead(id=str(r.id), **_columns(r, BodyWeightWrite)) for r in rows]
 
 
-def _columns(row, schema) -> dict:  # noqa: ANN001 - generic ORM helper
-    payload = {
-        field: getattr(row, field) for field in schema.model_fields if hasattr(row, field)
-    }
+def _columns(row, schema) -> dict:
+    payload = {field: getattr(row, field) for field in schema.model_fields if hasattr(row, field)}
     payload["created_at"] = row.created_at
     return payload
 
@@ -74,9 +70,7 @@ def _columns(row, schema) -> dict:  # noqa: ANN001 - generic ORM helper
     status_code=status.HTTP_201_CREATED,
     summary="Log body weight",
 )
-async def log_weight(
-    payload: BodyWeightWrite, db: DbSession, user: CurrentUser
-) -> BodyWeightRead:
+async def log_weight(payload: BodyWeightWrite, db: DbSession, user: CurrentUser) -> BodyWeightRead:
     entry = await body_service.record_weight(db, user, payload)
     await goal_service.refresh_all(db, user)
     await db.commit()
@@ -88,9 +82,7 @@ async def log_weight(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a weight entry",
 )
-async def delete_weight(
-    entry_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> Response:
+async def delete_weight(entry_id: uuid.UUID, db: DbSession, user: CurrentUser) -> Response:
     await body_service.delete_weight(db, user, entry_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -98,9 +90,7 @@ async def delete_weight(
 # --- measurements ------------------------------------------------------
 
 
-@router.get(
-    "/measurements", response_model=list[MeasurementRead], summary="Measurement history"
-)
+@router.get("/measurements", response_model=list[MeasurementRead], summary="Measurement history")
 async def list_measurements(
     db: DbSession,
     user: CurrentUser,
@@ -138,9 +128,7 @@ async def log_measurement(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a measurement",
 )
-async def delete_measurement(
-    entry_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> Response:
+async def delete_measurement(entry_id: uuid.UUID, db: DbSession, user: CurrentUser) -> Response:
     await body_service.delete_measurement(db, user, entry_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -192,18 +180,14 @@ async def upload_photo(
     return ProgressPhotoRead(**body_service.serialize_photo(photo))
 
 
-@router.get(
-    "/photos/compare", response_model=PhotoComparison, summary="Compare two photos"
-)
+@router.get("/photos/compare", response_model=PhotoComparison, summary="Compare two photos")
 async def compare_photos(
     before_id: uuid.UUID, after_id: uuid.UUID, db: DbSession, user: CurrentUser
 ) -> PhotoComparison:
     return PhotoComparison(**await body_service.compare_photos(db, user, before_id, after_id))
 
 
-@router.patch(
-    "/photos/{photo_id}", response_model=ProgressPhotoRead, summary="Edit photo details"
-)
+@router.patch("/photos/{photo_id}", response_model=ProgressPhotoRead, summary="Edit photo details")
 async def update_photo(
     photo_id: uuid.UUID,
     payload: ProgressPhotoUpdate,
@@ -228,15 +212,11 @@ async def delete_photo(photo_id: uuid.UUID, db: DbSession, user: CurrentUser) ->
 
 
 @router.get("/charts/weight", response_model=ChartResponse, summary="Body weight chart")
-async def weight_chart(
-    db: DbSession, user: CurrentUser, range: TimeRange = "30d"
-) -> ChartResponse:
+async def weight_chart(db: DbSession, user: CurrentUser, range: TimeRange = "30d") -> ChartResponse:
     return ChartResponse(**await analytics_service.body_weight_chart(db, user, time_range=range))
 
 
-@router.get(
-    "/charts/measurements", response_model=ChartResponse, summary="Measurement chart"
-)
+@router.get("/charts/measurements", response_model=ChartResponse, summary="Measurement chart")
 async def measurement_chart(
     db: DbSession,
     user: CurrentUser,
@@ -250,27 +230,19 @@ async def measurement_chart(
     )
 
 
-@router.get(
-    "/charts/volume", response_model=ChartResponse, summary="Volume and frequency chart"
-)
-async def volume_chart(
-    db: DbSession, user: CurrentUser, range: TimeRange = "30d"
-) -> ChartResponse:
+@router.get("/charts/volume", response_model=ChartResponse, summary="Volume and frequency chart")
+async def volume_chart(db: DbSession, user: CurrentUser, range: TimeRange = "30d") -> ChartResponse:
     return ChartResponse(**await analytics_service.volume_chart(db, user, time_range=range))
 
 
-@router.get(
-    "/charts/nutrition", response_model=ChartResponse, summary="Calories and protein chart"
-)
+@router.get("/charts/nutrition", response_model=ChartResponse, summary="Calories and protein chart")
 async def nutrition_chart(
     db: DbSession, user: CurrentUser, range: TimeRange = "30d"
 ) -> ChartResponse:
     return ChartResponse(**await analytics_service.nutrition_chart(db, user, time_range=range))
 
 
-@router.get(
-    "/exercises", response_model=list[ExerciseSummary], summary="Exercises you've trained"
-)
+@router.get("/exercises", response_model=list[ExerciseSummary], summary="Exercises you've trained")
 async def trained_exercises(
     db: DbSession, user: CurrentUser, limit: int = Query(40, ge=1, le=100)
 ) -> list[ExerciseSummary]:
@@ -294,12 +266,6 @@ async def exercise_progress(
     )
 
 
-@router.get(
-    "/overview", response_model=TrainingOverview, summary="Training overview and totals"
-)
-async def overview(
-    db: DbSession, user: CurrentUser, range: TimeRange = "30d"
-) -> TrainingOverview:
-    return TrainingOverview(
-        **await analytics_service.training_overview(db, user, time_range=range)
-    )
+@router.get("/overview", response_model=TrainingOverview, summary="Training overview and totals")
+async def overview(db: DbSession, user: CurrentUser, range: TimeRange = "30d") -> TrainingOverview:
+    return TrainingOverview(**await analytics_service.training_overview(db, user, time_range=range))

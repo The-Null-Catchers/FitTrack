@@ -18,22 +18,22 @@ os.environ.setdefault("STORAGE_BACKEND", "local")
 os.environ.setdefault("AI_PROVIDER", "mock")
 os.environ.setdefault("JWT_SECRET", "test-secret-not-used-anywhere-real")
 
-import pytest  # noqa: E402
-from httpx import ASGITransport, AsyncClient  # noqa: E402
-from sqlalchemy.ext.asyncio import (  # noqa: E402
+import pytest
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.pool import StaticPool  # noqa: E402
+from sqlalchemy.pool import StaticPool
 
-from app.core.deps import get_db  # noqa: E402
-from app.core.security import hash_password  # noqa: E402
-from app.main import app as fastapi_app  # noqa: E402
-from app.models import Base  # noqa: E402
-from app.models.enums import UserRole  # noqa: E402
-from app.models.notification import NotificationPreference  # noqa: E402
-from app.models.user import User, UserProfile  # noqa: E402
+from app.core.deps import get_db
+from app.core.security import hash_password
+from app.main import app as fastapi_app
+from app.models import Base
+from app.models.enums import UserRole
+from app.models.notification import NotificationPreference
+from app.models.user import User, UserProfile
 
 TEST_PASSWORD = "TestPass123!"
 

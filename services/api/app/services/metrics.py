@@ -131,7 +131,7 @@ def estimate_targets(
         "recommended_carbs_g": round(carbs_g),
         "recommended_fat_g": round(fat_g),
         "recommended_fiber_g": round(fiber_g),
-        "recommended_water_ml": int(round(water_ml / 50) * 50),
+        "recommended_water_ml": round(water_ml / 50) * 50,
     }
 
 
@@ -149,7 +149,7 @@ def estimate_session_calories(
     hours = duration_seconds / 3600
     base = 5.0 * weight * hours
     volume_bonus = min(total_volume_kg / 1000, 12) * 4
-    return int(round(base + volume_bonus))
+    return round(base + volume_bonus)
 
 
 def kg_to_lb(value: float) -> float:

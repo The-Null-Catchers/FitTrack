@@ -22,9 +22,7 @@ router = APIRouter(prefix="/sync", tags=["sync"])
         "idempotency key, so a retried batch never creates duplicate records."
     ),
 )
-async def push(
-    payload: SyncPushRequest, db: DbSession, user: CurrentUser
-) -> SyncPushResponse:
+async def push(payload: SyncPushRequest, db: DbSession, user: CurrentUser) -> SyncPushResponse:
     return SyncPushResponse(**await sync_service.push(db, user, payload))
 
 
@@ -33,7 +31,5 @@ async def push(
     response_model=SyncPullResponse,
     summary="Pull server-side changes since a timestamp",
 )
-async def pull(
-    db: DbSession, user: CurrentUser, since: datetime | None = None
-) -> SyncPullResponse:
+async def pull(db: DbSession, user: CurrentUser, since: datetime | None = None) -> SyncPullResponse:
     return SyncPullResponse(**await sync_service.pull(db, user, since=since))

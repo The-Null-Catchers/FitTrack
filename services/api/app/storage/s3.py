@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from functools import cached_property
 from typing import Any
 
@@ -55,9 +56,7 @@ class S3StorageProvider(StorageProvider):
 
     async def get(self, key: str) -> bytes:
         try:
-            response = await asyncio.to_thread(
-                self.client.get_object, Bucket=self.bucket, Key=key
-            )
+            response = await asyncio.to_thread(self.client.get_object, Bucket=self.bucket, Key=key)
         except ClientError as exc:
             if exc.response.get("Error", {}).get("Code") in {"NoSuchKey", "404"}:
                 raise NotFoundError("That file could not be found.") from exc
@@ -65,10 +64,9 @@ class S3StorageProvider(StorageProvider):
         return await asyncio.to_thread(response["Body"].read)
 
     async def delete(self, key: str) -> None:
-        try:
+        # Deleting is best-effort: a missing object is already the desired state.
+        with contextlib.suppress(ClientError):
             await asyncio.to_thread(self.client.delete_object, Bucket=self.bucket, Key=key)
-        except ClientError:  # pragma: no cover - delete is best-effort
-            pass
 
     async def exists(self, key: str) -> bool:
         try:

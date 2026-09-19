@@ -85,13 +85,19 @@ _STARTING_LOAD = {
 
 
 async def seed_exercises(db: AsyncSession) -> int:
-    existing = {
-        slug for slug in await db.scalars(select(Exercise.slug).where(Exercise.is_public.is_(True)))
-    }
+    existing = set(await db.scalars(select(Exercise.slug).where(Exercise.is_public.is_(True))))
     created = 0
     for (
-        name, name_ar, muscle_group, equipment, difficulty, exercise_type,
-        tracking, secondary, rest, instructions,
+        name,
+        name_ar,
+        muscle_group,
+        equipment,
+        difficulty,
+        exercise_type,
+        tracking,
+        secondary,
+        rest,
+        instructions,
     ) in EXERCISES:
         slug = slugify(name)
         if slug in existing:
@@ -120,13 +126,10 @@ async def seed_exercises(db: AsyncSession) -> int:
 
 async def seed_foods(db: AsyncSession) -> int:
     existing = {
-        name.lower()
-        for name in await db.scalars(select(Food.name).where(Food.user_id.is_(None)))
+        name.lower() for name in await db.scalars(select(Food.name).where(Food.user_id.is_(None)))
     }
     created = 0
-    for (
-        name, name_ar, brand, kcal, protein, carbs, fat, fiber, serving, options
-    ) in FOODS:
+    for name, name_ar, brand, kcal, protein, carbs, fat, fiber, serving, options in FOODS:
         if name.lower() in existing:
             continue
         food = Food(
@@ -154,12 +157,9 @@ async def seed_templates(db: AsyncSession) -> int:
         exercise.name: exercise
         for exercise in await db.scalars(select(Exercise).where(Exercise.is_public.is_(True)))
     }
-    existing = {
-        name
-        for name in await db.scalars(
-            select(WorkoutProgram.name).where(WorkoutProgram.is_template.is_(True))
-        )
-    }
+    existing = set(
+        await db.scalars(select(WorkoutProgram.name).where(WorkoutProgram.is_template.is_(True)))
+    )
     created = 0
     for index, template in enumerate(TEMPLATES):
         if template["name"] in existing:
@@ -364,7 +364,8 @@ def _add_sets(
 
 
 def _recompute(session: WorkoutSession) -> None:
-    volume = sets = reps = 0.0
+    volume = 0.0
+    sets = reps = 0
     for item in session.exercises:
         for logged in item.sets:
             if not logged.is_completed:
@@ -373,9 +374,9 @@ def _recompute(session: WorkoutSession) -> None:
             reps += logged.reps or 0
             volume += logged.volume_kg or 0
     session.total_volume_kg = round(volume, 2)
-    session.total_sets = int(sets)
-    session.total_reps = int(reps)
-    session.estimated_calories = int(round((session.duration_seconds or 0) / 60 * 6.5))
+    session.total_sets = sets
+    session.total_reps = reps
+    session.estimated_calories = round((session.duration_seconds or 0) / 60 * 6.5)
 
 
 async def _seed_body_history(db: AsyncSession, user: User, *, days: int) -> None:
@@ -423,9 +424,7 @@ async def _seed_body_history(db: AsyncSession, user: User, *, days: int) -> None
 
 
 async def _seed_nutrition(db: AsyncSession, user: User, *, days: int) -> None:
-    foods = list(
-        await db.scalars(select(Food).where(Food.user_id.is_(None)).limit(60))
-    )
+    foods = list(await db.scalars(select(Food).where(Food.user_id.is_(None)).limit(60)))
     if not foods:
         return
     by_name = {food.name: food for food in foods}
@@ -450,9 +449,7 @@ async def _seed_nutrition(db: AsyncSession, user: User, *, days: int) -> None:
             chosen = [by_name[n] for n in RNG.sample(names, k=min(3, len(names))) if n in by_name]
             if not chosen:
                 continue
-            meal = Meal(
-                user_id=user.id, logged_on=day, meal_type=meal_type, position=0
-            )
+            meal = Meal(user_id=user.id, logged_on=day, meal_type=meal_type, position=0)
             db.add(meal)
             await db.flush()
             for position, food in enumerate(chosen):
@@ -607,9 +604,7 @@ async def seed_demo_data(db: AsyncSession, *, weeks: int = 12) -> dict[str, int]
         admin.profile = UserProfile(user_id=admin.id)
         await db.commit()
 
-    user = await _create_user(
-        db, email=DEMO_EMAIL, password=DEMO_PASSWORD, full_name="Sam Rivera"
-    )
+    user = await _create_user(db, email=DEMO_EMAIL, password=DEMO_PASSWORD, full_name="Sam Rivera")
     if user is None:
         logger.info("seed.demo_user_exists")
         return {"created": 0}
@@ -634,8 +629,11 @@ async def seed_demo_data(db: AsyncSession, *, weeks: int = 12) -> dict[str, int]
         activity_level=ActivityLevel.MODERATE,
         workout_location=WorkoutLocation.GYM,
         available_equipment=[
-            Equipment.BARBELL, Equipment.DUMBBELL, Equipment.CABLE,
-            Equipment.MACHINE, Equipment.BODYWEIGHT,
+            Equipment.BARBELL,
+            Equipment.DUMBBELL,
+            Equipment.CABLE,
+            Equipment.MACHINE,
+            Equipment.BODYWEIGHT,
         ],
         training_days_per_week=4,
         preferred_session_minutes=65,
@@ -655,9 +653,7 @@ async def seed_demo_data(db: AsyncSession, *, weeks: int = 12) -> dict[str, int]
             WorkoutProgram.is_template.is_(True), WorkoutProgram.name == "Upper / Lower"
         )
     )
-    program = await program_service.duplicate(
-        db, template.id, user, name="Upper / Lower — My Plan"
-    )
+    program = await program_service.duplicate(db, template.id, user, name="Upper / Lower — My Plan")
     await program_service.activate(db, program.id, user)
     program = await program_service.get_for_user(db, program.id, user)
 

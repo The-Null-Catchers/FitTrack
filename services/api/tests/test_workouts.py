@@ -11,7 +11,8 @@ async def program(client, seeded_library, auth_headers):
     templates = await client.get("/api/v1/programs/templates")
     template_id = next(t["id"] for t in templates.json() if t["name"] == "Push / Pull / Legs")
     clone = await client.post(
-        f"/api/v1/programs/{template_id}/duplicate", json={"name": "PPL"},
+        f"/api/v1/programs/{template_id}/duplicate",
+        json={"name": "PPL"},
         headers=auth_headers,
     )
     program = clone.json()
@@ -137,7 +138,8 @@ async def test_finishing_computes_totals_and_duration(client, auth_headers, star
     assert body["total_reps"] == 40
     assert body["total_volume_kg"] == 2400
     assert body["estimated_calories"] > 0
-    assert (await client.get("/api/v1/workout-sessions/active", headers=auth_headers)).json() is None
+    active = await client.get("/api/v1/workout-sessions/active", headers=auth_headers)
+    assert active.json() is None
 
 
 async def test_finishing_detects_personal_records(client, auth_headers, started):
@@ -178,9 +180,7 @@ async def test_warm_up_sets_never_set_records(client, auth_headers, started):
     assert finished.json()["personal_records"] == []
 
 
-async def test_a_second_workout_shows_previous_performance(
-    client, auth_headers, program, started
-):
+async def test_a_second_workout_shows_previous_performance(client, auth_headers, program, started):
     session_exercise_id = started["exercises"][0]["id"]
     await client.post(
         f"/api/v1/workout-sessions/exercises/{session_exercise_id}/sets",
@@ -203,9 +203,7 @@ async def test_a_second_workout_shows_previous_performance(
     assert previous["total_volume_kg"] == 640
 
 
-async def test_replacing_an_exercise_keeps_the_slot(
-    client, auth_headers, seeded_library, started
-):
+async def test_replacing_an_exercise_keeps_the_slot(client, auth_headers, seeded_library, started):
     listing = await client.get("/api/v1/exercises?q=push-up")
     replacement_id = listing.json()["items"][0]["id"]
     session_exercise_id = started["exercises"][0]["id"]
@@ -253,9 +251,7 @@ async def test_history_is_filterable_and_reports_records(client, auth_headers, s
     assert empty.json()["items"] == []
 
 
-async def test_personal_records_endpoint_returns_current_bests(
-    client, auth_headers, program
-):
+async def test_personal_records_endpoint_returns_current_bests(client, auth_headers, program):
     """Two sessions: the second must supersede the first, not duplicate it."""
     for weight in (80, 90):
         started = (
@@ -271,7 +267,8 @@ async def test_personal_records_endpoint_returns_current_bests(
             headers=auth_headers,
         )
         await client.post(
-            f"/api/v1/workout-sessions/{started['id']}/finish", json={},
+            f"/api/v1/workout-sessions/{started['id']}/finish",
+            json={},
             headers=auth_headers,
         )
 
@@ -281,9 +278,7 @@ async def test_personal_records_endpoint_returns_current_bests(
     assert by_type["max_weight"]["previous_value"] == 80
 
 
-async def test_discarding_a_workout_clears_the_active_session(
-    client, auth_headers, started
-):
+async def test_discarding_a_workout_clears_the_active_session(client, auth_headers, started):
     response = await client.post(
         f"/api/v1/workout-sessions/{started['id']}/discard", headers=auth_headers
     )
@@ -293,9 +288,7 @@ async def test_discarding_a_workout_clears_the_active_session(
     ).json() is None
 
 
-async def test_one_user_cannot_touch_another_users_workout(
-    client, db, auth_headers, started
-):
+async def test_one_user_cannot_touch_another_users_workout(client, db, auth_headers, started):
     from tests.conftest import _make_user
 
     other = await _make_user(db, email="thief@example.com", full_name="Thief")

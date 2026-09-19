@@ -35,12 +35,13 @@ async def serve(
         raise NotFoundError("That file could not be found.")
 
     is_public = key.startswith(_PUBLIC_PREFIXES)
-    if not is_public:
-        if not expires or not signature or not verify_local_signature(key, expires, signature):
-            raise PermissionError_(
-                "That link has expired. Open the photo again from the app.",
-                code="invalid_signature",
-            )
+    if not is_public and (
+        not expires or not signature or not verify_local_signature(key, expires, signature)
+    ):
+        raise PermissionError_(
+            "That link has expired. Open the photo again from the app.",
+            code="invalid_signature",
+        )
 
     data = await storage.get(key)
     suffix = "." + key.rsplit(".", 1)[-1].lower() if "." in key else ""

@@ -95,7 +95,7 @@ class WorkoutSessionExercise(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     replaced_exercise_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), default=None)
 
     session: Mapped[WorkoutSession] = relationship(back_populates="exercises")
-    exercise: Mapped["object"] = relationship("Exercise", lazy="selectin")
+    exercise: Mapped[object] = relationship("Exercise", lazy="selectin")
     sets: Mapped[list[WorkoutSet]] = relationship(
         back_populates="session_exercise",
         cascade="all, delete-orphan",
@@ -169,11 +169,9 @@ class PersonalRecord(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     set_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), default=None)
     #: Cleared once the celebration has been shown on the client.
-    acknowledged_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), default=None
-    )
+    acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
-    exercise: Mapped["object"] = relationship("Exercise", lazy="selectin")
+    exercise: Mapped[object] = relationship("Exercise", lazy="selectin")
 
     __table_args__ = (
         Index("ix_personal_records_lookup", "user_id", "exercise_id", "record_type"),

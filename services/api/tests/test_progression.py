@@ -78,16 +78,12 @@ def test_repeatedly_missing_the_rep_floor_suggests_a_deload():
 
 def test_dumbbell_increment_is_smaller_than_barbell():
     clean = _session((24, 8, 8.0), (24, 8, 8.0), (24, 8, 8.0))
-    result = suggest(
-        recent_sessions=[clean, clean], **{**BASE, "equipment": Equipment.DUMBBELL}
-    )
+    result = suggest(recent_sessions=[clean, clean], **{**BASE, "equipment": Equipment.DUMBBELL})
     assert result.suggested_weight_kg == 26.0
 
 
 def test_bodyweight_work_progresses_by_reps():
-    clean = SessionOutcome(
-        sets=[SetOutcome(None, 12, None, 8.0, SetType.NORMAL) for _ in range(3)]
-    )
+    clean = SessionOutcome(sets=[SetOutcome(None, 12, None, 8.0, SetType.NORMAL) for _ in range(3)])
     result = suggest(
         recent_sessions=[clean, clean],
         **{
@@ -101,9 +97,7 @@ def test_bodyweight_work_progresses_by_reps():
 
 
 def test_duration_work_suggests_more_time():
-    held = SessionOutcome(
-        sets=[SetOutcome(None, None, 60, 8.0, SetType.NORMAL) for _ in range(3)]
-    )
+    held = SessionOutcome(sets=[SetOutcome(None, None, 60, 8.0, SetType.NORMAL) for _ in range(3)])
     result = suggest(
         recent_sessions=[held, held],
         **{**BASE, "tracking_type": TrackingType.DURATION, "equipment": Equipment.BODYWEIGHT},

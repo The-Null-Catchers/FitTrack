@@ -35,9 +35,7 @@ def test_epley_caps_unreliable_high_rep_sets():
     assert epley_1rm(60, 20) == epley_1rm(60, 12)
 
 
-@pytest.mark.parametrize(
-    ("weight", "reps"), [(0, 5), (100, 0), (-10, 5), (100, -1)]
-)
+@pytest.mark.parametrize(("weight", "reps"), [(0, 5), (100, 0), (-10, 5), (100, -1)])
 def test_epley_rejects_nonsense(weight, reps):
     assert epley_1rm(weight, reps) == 0.0
 
@@ -55,12 +53,8 @@ def test_age_from_handles_birthday_not_yet_reached():
 
 
 def test_bmr_uses_the_expected_constants():
-    male = mifflin_st_jeor_bmr(
-        weight_kg=80, height_cm=180, age_years=30, gender=Gender.MALE
-    )
-    female = mifflin_st_jeor_bmr(
-        weight_kg=80, height_cm=180, age_years=30, gender=Gender.FEMALE
-    )
+    male = mifflin_st_jeor_bmr(weight_kg=80, height_cm=180, age_years=30, gender=Gender.MALE)
+    female = mifflin_st_jeor_bmr(weight_kg=80, height_cm=180, age_years=30, gender=Gender.FEMALE)
     assert male == pytest.approx(1780.0)
     assert female == pytest.approx(1614.0)
     # An undisclosed gender still produces a usable number, between the two.
@@ -118,10 +112,9 @@ def test_percent_change():
 
 
 def test_session_calories_needs_a_duration():
-    assert estimate_session_calories(
-        duration_seconds=None, bodyweight_kg=80, total_volume_kg=5000
-    ) is None
-    value = estimate_session_calories(
-        duration_seconds=3600, bodyweight_kg=80, total_volume_kg=5000
+    assert (
+        estimate_session_calories(duration_seconds=None, bodyweight_kg=80, total_volume_kg=5000)
+        is None
     )
+    value = estimate_session_calories(duration_seconds=3600, bodyweight_kg=80, total_volume_kg=5000)
     assert 350 < value < 500

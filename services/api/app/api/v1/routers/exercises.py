@@ -59,9 +59,7 @@ async def filters() -> ExerciseFilterOptions:
 
 
 @router.get("/{exercise_id}", response_model=ExerciseRead, summary="Exercise detail")
-async def get_exercise(
-    exercise_id: uuid.UUID, db: DbSession, user: OptionalUser
-) -> ExerciseRead:
+async def get_exercise(exercise_id: uuid.UUID, db: DbSession, user: OptionalUser) -> ExerciseRead:
     exercise = await exercise_service.get(db, exercise_id, user=user)
     return ExerciseRead(**exercise_service.serialize(exercise, detail=True))
 
@@ -90,8 +88,6 @@ async def update_exercise(
 @router.delete(
     "/{exercise_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete an exercise"
 )
-async def delete_exercise(
-    exercise_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> Response:
+async def delete_exercise(exercise_id: uuid.UUID, db: DbSession, user: CurrentUser) -> Response:
     await exercise_service.delete(db, exercise_id, user=user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

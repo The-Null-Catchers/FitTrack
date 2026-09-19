@@ -6,7 +6,8 @@ import uuid
 from datetime import UTC, date, datetime
 from typing import Any
 
-from sqlalchemy import func, or_, select, update as sa_update
+from sqlalchemy import func, or_, select
+from sqlalchemy import update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -82,9 +83,7 @@ async def list_for_user(
     return list(rows), total
 
 
-async def list_templates(
-    db: AsyncSession, *, featured_only: bool = False
-) -> list[WorkoutProgram]:
+async def list_templates(db: AsyncSession, *, featured_only: bool = False) -> list[WorkoutProgram]:
     stmt = select(WorkoutProgram).where(
         WorkoutProgram.is_template.is_(True), WorkoutProgram.is_deleted.is_(False)
     )
@@ -166,9 +165,7 @@ async def update(
     return await get_for_user(db, program.id, user)
 
 
-async def _set_status(
-    db: AsyncSession, program: WorkoutProgram, user: User, status: str
-) -> None:
+async def _set_status(db: AsyncSession, program: WorkoutProgram, user: User, status: str) -> None:
     if status == ProgramStatus.ACTIVE:
         # Exactly one active program per user.
         await db.execute(
@@ -327,9 +324,7 @@ async def add_day_exercise(
     return await get_for_user(db, day.program_id, user)
 
 
-async def _get_day_exercise(
-    db: AsyncSession, item_id: uuid.UUID, user: User
-) -> WorkoutDayExercise:
+async def _get_day_exercise(db: AsyncSession, item_id: uuid.UUID, user: User) -> WorkoutDayExercise:
     item = await db.scalar(
         select(WorkoutDayExercise)
         .options(selectinload(WorkoutDayExercise.day).selectinload(WorkoutDay.program))
@@ -352,9 +347,7 @@ async def update_day_exercise(
     return await get_for_user(db, item.day.program_id, user)
 
 
-async def remove_day_exercise(
-    db: AsyncSession, item_id: uuid.UUID, user: User
-) -> WorkoutProgram:
+async def remove_day_exercise(db: AsyncSession, item_id: uuid.UUID, user: User) -> WorkoutProgram:
     item = await _get_day_exercise(db, item_id, user)
     program_id = item.day.program_id
     await db.delete(item)

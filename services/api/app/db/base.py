@@ -32,13 +32,22 @@ class UUIDPrimaryKeyMixin:
 
 
 class TimestampMixin:
+    """``created_at`` / ``updated_at``, maintained by the ORM.
+
+    Both a Python-side and a server-side default are declared. The Python one
+    gives microsecond precision on every backend (SQLite's ``CURRENT_TIMESTAMP``
+    only resolves to the second, which would let a sync delta miss rows written
+    in the same second); the server default keeps raw SQL inserts correct.
+    """
+
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True), default=utcnow, server_default=func.now(), nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        default=utcnow,
+        onupdate=utcnow,
         server_default=func.now(),
-        onupdate=func.now(),
         nullable=False,
     )
 

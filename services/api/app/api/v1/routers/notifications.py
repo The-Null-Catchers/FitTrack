@@ -40,9 +40,7 @@ async def unread_count(db: DbSession, user: CurrentUser) -> UnreadCount:
     return UnreadCount(unread=await notification_service.unread_count(db, user))
 
 
-@router.post(
-    "/{notification_id}/read", response_model=NotificationRead, summary="Mark as read"
-)
+@router.post("/{notification_id}/read", response_model=NotificationRead, summary="Mark as read")
 async def mark_read(
     notification_id: uuid.UUID, db: DbSession, user: CurrentUser
 ) -> NotificationRead:
@@ -61,9 +59,7 @@ async def mark_all_read(db: DbSession, user: CurrentUser) -> MessageResponse:
     response_model=NotificationPreferenceRead,
     summary="Notification preferences",
 )
-async def get_preferences(
-    db: DbSession, user: CurrentUser
-) -> NotificationPreferenceRead:
+async def get_preferences(db: DbSession, user: CurrentUser) -> NotificationPreferenceRead:
     preference = await notification_service.get_preferences(db, user)
     return NotificationPreferenceRead.model_validate(preference)
 
@@ -80,9 +76,7 @@ async def update_preferences(
     return NotificationPreferenceRead.model_validate(preference)
 
 
-@router.post(
-    "/push-token", response_model=MessageResponse, summary="Register a device push token"
-)
+@router.post("/push-token", response_model=MessageResponse, summary="Register a device push token")
 async def register_push_token(
     payload: PushTokenRegister, db: DbSession, user: CurrentUser
 ) -> MessageResponse:

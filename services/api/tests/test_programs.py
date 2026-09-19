@@ -66,9 +66,7 @@ async def test_rep_range_is_validated(client, auth_headers, exercise_ids):
     assert response.status_code == 422
 
 
-async def test_activating_a_program_archives_the_previous_one(
-    client, auth_headers, exercise_ids
-):
+async def test_activating_a_program_archives_the_previous_one(client, auth_headers, exercise_ids):
     first = await client.post(
         "/api/v1/programs", json=_program_payload(exercise_ids), headers=auth_headers
     )
@@ -81,9 +79,7 @@ async def test_activating_a_program_archives_the_previous_one(
     await client.post(f"/api/v1/programs/{first.json()['id']}/activate", headers=auth_headers)
     await client.post(f"/api/v1/programs/{second.json()['id']}/activate", headers=auth_headers)
 
-    reread_first = await client.get(
-        f"/api/v1/programs/{first.json()['id']}", headers=auth_headers
-    )
+    reread_first = await client.get(f"/api/v1/programs/{first.json()['id']}", headers=auth_headers)
     assert reread_first.json()["status"] == "archived"
 
     active = await client.get("/api/v1/programs/active", headers=auth_headers)
@@ -114,9 +110,7 @@ async def test_templates_are_listed_and_cloneable(client, seeded_library, auth_h
 async def test_cloning_copies_prescriptions(client, seeded_library, auth_headers):
     templates = await client.get("/api/v1/programs/templates")
     template_id = templates.json()[0]["id"]
-    original = (
-        await client.get(f"/api/v1/programs/{template_id}", headers=auth_headers)
-    ).json()
+    original = (await client.get(f"/api/v1/programs/{template_id}", headers=auth_headers)).json()
 
     clone = await client.post(
         f"/api/v1/programs/{template_id}/duplicate", json={}, headers=auth_headers

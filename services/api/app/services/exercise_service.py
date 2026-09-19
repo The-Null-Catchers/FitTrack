@@ -72,9 +72,7 @@ async def search(
         exercise_type=exercise_type,
     )
 
-    total = int(
-        await db.scalar(select(func.count()).select_from(base.subquery())) or 0
-    )
+    total = int(await db.scalar(select(func.count()).select_from(base.subquery())) or 0)
 
     order = {
         "name": (Exercise.name.asc(),),

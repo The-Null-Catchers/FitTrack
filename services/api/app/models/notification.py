@@ -23,9 +23,7 @@ class Notification(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     user_id: Mapped[uuid.UUID] = mapped_column(
         GUID(), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    type: Mapped[str] = mapped_column(
-        String(32), default=NotificationType.SYSTEM, nullable=False
-    )
+    type: Mapped[str] = mapped_column(String(32), default=NotificationType.SYSTEM, nullable=False)
     title: Mapped[str] = mapped_column(String(160), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     #: Client-side route to open when tapped, e.g. "/progress/records".

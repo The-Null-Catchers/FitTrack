@@ -77,12 +77,8 @@ async def update_user(
     )
 
 
-@router.post(
-    "/exercises", response_model=ExerciseRead, summary="Publish a library exercise"
-)
-async def create_exercise(
-    payload: ExerciseCreate, db: DbSession, admin: AdminUser
-) -> ExerciseRead:
+@router.post("/exercises", response_model=ExerciseRead, summary="Publish a library exercise")
+async def create_exercise(payload: ExerciseCreate, db: DbSession, admin: AdminUser) -> ExerciseRead:
     exercise = await exercise_service.create(db, payload, user=admin, as_public=True)
     return ExerciseRead(**exercise_service.serialize(exercise, detail=True))
 
@@ -99,9 +95,7 @@ async def update_exercise(
     return ExerciseRead(**exercise_service.serialize(exercise, detail=True))
 
 
-@router.get(
-    "/templates", response_model=list[ProgramSummary], summary="Workout templates"
-)
+@router.get("/templates", response_model=list[ProgramSummary], summary="Workout templates")
 async def list_templates(db: DbSession, _: AdminUser) -> list[ProgramSummary]:
     rows = await program_service.list_templates(db)
     return [ProgramSummary(**program_service.serialize(row)) for row in rows]

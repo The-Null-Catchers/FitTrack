@@ -37,9 +37,7 @@ async def update_me(payload: UserUpdate, db: DbSession, user: CurrentUser) -> Us
 
 
 @router.patch("/fitness", response_model=ProfileRead, summary="Update fitness profile")
-async def update_profile(
-    payload: ProfileUpdate, db: DbSession, user: CurrentUser
-) -> ProfileRead:
+async def update_profile(payload: ProfileUpdate, db: DbSession, user: CurrentUser) -> ProfileRead:
     profile = await user_service.update_profile(db, user, payload)
     return ProfileRead.model_validate(profile)
 
@@ -114,9 +112,7 @@ async def export_data(db: DbSession, user: CurrentUser) -> Response:
     return Response(
         content=json.dumps(payload, indent=2),
         media_type="application/json",
-        headers={
-            "Content-Disposition": f'attachment; filename="fittrack-export-{user.id}.json"'
-        },
+        headers={"Content-Disposition": f'attachment; filename="fittrack-export-{user.id}.json"'},
     )
 
 

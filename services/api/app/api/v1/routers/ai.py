@@ -41,12 +41,8 @@ async def chat(payload: ChatRequest, db: DbSession, user: CurrentUser) -> ChatRe
 @router.get(
     "/conversations", response_model=list[ConversationSummary], summary="Your conversations"
 )
-async def list_conversations(
-    db: DbSession, user: CurrentUser
-) -> list[ConversationSummary]:
-    return [
-        ConversationSummary(**row) for row in await ai_service.list_conversations(db, user)
-    ]
+async def list_conversations(db: DbSession, user: CurrentUser) -> list[ConversationSummary]:
+    return [ConversationSummary(**row) for row in await ai_service.list_conversations(db, user)]
 
 
 @router.get(
@@ -90,9 +86,7 @@ async def generate_plan(
     status_code=status.HTTP_201_CREATED,
     summary="Save a generated plan as a new program",
 )
-async def save_plan(
-    payload: PlanSaveRequest, db: DbSession, user: CurrentUser
-) -> ProgramRead:
+async def save_plan(payload: PlanSaveRequest, db: DbSession, user: CurrentUser) -> ProgramRead:
     program = await ai_service.save_plan(
         db,
         user,
@@ -123,9 +117,7 @@ async def substitutions(
 async def progress_summary(
     db: DbSession, user: CurrentUser, range: TimeRange = "30d"
 ) -> ProgressSummaryResponse:
-    return ProgressSummaryResponse(
-        **await ai_service.progress_summary(db, user, time_range=range)
-    )
+    return ProgressSummaryResponse(**await ai_service.progress_summary(db, user, time_range=range))
 
 
 @router.get("/usage", response_model=AIUsageResponse, summary="Today's FitCoach usage")

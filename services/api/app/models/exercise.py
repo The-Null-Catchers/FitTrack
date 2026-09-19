@@ -24,9 +24,7 @@ class Exercise(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
     muscle_group: Mapped[str] = mapped_column(String(24), nullable=False, index=True)
     secondary_muscles: Mapped[list[str]] = mapped_column(JSONDict, default=list, nullable=False)
     equipment: Mapped[str] = mapped_column(String(24), nullable=False, index=True)
-    difficulty: Mapped[str] = mapped_column(
-        String(16), default=Difficulty.BEGINNER, nullable=False
-    )
+    difficulty: Mapped[str] = mapped_column(String(16), default=Difficulty.BEGINNER, nullable=False)
     exercise_type: Mapped[str] = mapped_column(
         String(16), default=ExerciseType.STRENGTH, nullable=False
     )

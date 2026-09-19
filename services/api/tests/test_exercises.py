@@ -62,9 +62,7 @@ async def test_detail_includes_instructions(client, seeded_library, auth_headers
     assert detail.json()["media"] == []
 
 
-async def test_custom_exercise_is_private_to_its_creator(
-    client, db, auth_headers, seeded_library
-):
+async def test_custom_exercise_is_private_to_its_creator(client, db, auth_headers, seeded_library):
     created = await client.post("/api/v1/exercises", json=CUSTOM, headers=auth_headers)
     assert created.status_code == 201
     assert created.json()["is_public"] is False
@@ -117,16 +115,12 @@ async def test_a_user_cannot_edit_a_library_exercise(client, seeded_library, aut
 
 
 async def test_admin_can_publish_a_library_exercise(client, admin_headers):
-    response = await client.post(
-        "/api/v1/admin/exercises", json=CUSTOM, headers=admin_headers
-    )
+    response = await client.post("/api/v1/admin/exercises", json=CUSTOM, headers=admin_headers)
     assert response.status_code == 200
     assert response.json()["is_public"] is True
 
 
 async def test_admin_routes_reject_normal_users(client, auth_headers):
-    response = await client.post(
-        "/api/v1/admin/exercises", json=CUSTOM, headers=auth_headers
-    )
+    response = await client.post("/api/v1/admin/exercises", json=CUSTOM, headers=auth_headers)
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "forbidden"

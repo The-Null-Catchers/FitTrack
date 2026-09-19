@@ -82,13 +82,9 @@ class MockAIProvider(AIProvider):
     async def complete(self, request: CompletionRequest) -> CompletionResult:
         if request.json_schema is not None:
             # Structured requests are answered by the planner, not the model.
-            return CompletionResult(
-                text=json.dumps({}), model="fittrack-local", data={}
-            )
+            return CompletionResult(text=json.dumps({}), model="fittrack-local", data={})
 
-        last_user = next(
-            (m.content for m in reversed(request.messages) if m.role == "user"), ""
-        )
+        last_user = next((m.content for m in reversed(request.messages) if m.role == "user"), "")
         body = _FALLBACK
         for pattern, answer in _TOPICS:
             if pattern.search(last_user):

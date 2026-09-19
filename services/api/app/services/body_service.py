@@ -284,9 +284,7 @@ def serialize_photo(photo: ProgressPhoto) -> dict[str, Any]:
         "taken_on": photo.taken_on,
         "pose": photo.pose,
         "url": storage.signed_url(photo.storage_key),
-        "thumbnail_url": (
-            storage.signed_url(photo.thumbnail_key) if photo.thumbnail_key else None
-        ),
+        "thumbnail_url": (storage.signed_url(photo.thumbnail_key) if photo.thumbnail_key else None),
         "weight_kg": photo.weight_kg,
         "note": photo.note,
         "width": photo.width,

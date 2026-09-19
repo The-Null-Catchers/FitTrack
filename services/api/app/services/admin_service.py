@@ -52,9 +52,7 @@ async def overview(db: AsyncSession) -> dict[str, Any]:
     day_ago = now - timedelta(days=1)
 
     async def count(model: Any, *conditions: Any) -> int:
-        return int(
-            await db.scalar(select(func.count()).select_from(model).where(*conditions)) or 0
-        )
+        return int(await db.scalar(select(func.count()).select_from(model).where(*conditions)) or 0)
 
     total_users = await count(User, User.is_deleted.is_(False))
     active_7d = int(
@@ -121,9 +119,7 @@ async def overview(db: AsyncSession) -> dict[str, Any]:
             )
             or 0
         ),
-        "photos_uploaded_7d": await count(
-            ProgressPhoto, ProgressPhoto.created_at >= week_ago
-        ),
+        "photos_uploaded_7d": await count(ProgressPhoto, ProgressPhoto.created_at >= week_ago),
         "storage_bytes_used": storage_bytes,
         "api_errors_24h": await count(
             AuditLog, AuditLog.action == "api.error", AuditLog.created_at >= day_ago
@@ -199,9 +195,7 @@ async def get_user(db: AsyncSession, user_id: uuid.UUID) -> dict[str, Any]:
         raise NotFoundError("We couldn't find that user.")
 
     async def count(model: Any, *conditions: Any) -> int:
-        return int(
-            await db.scalar(select(func.count()).select_from(model).where(*conditions)) or 0
-        )
+        return int(await db.scalar(select(func.count()).select_from(model).where(*conditions)) or 0)
 
     row = _user_row(
         user,
@@ -297,7 +291,7 @@ async def audit_logs(
     emails: dict[uuid.UUID, str] = {}
     if actor_ids:
         emails = dict(
-            await db.execute(select(User.id, User.email).where(User.id.in_(actor_ids)))
+            (await db.execute(select(User.id, User.email).where(User.id.in_(actor_ids)))).all()
         )
     return (
         [
@@ -336,13 +330,9 @@ async def storage_stats(db: AsyncSession) -> dict[str, Any]:
         )
         or 0
     )
-    media_count = int(
-        await db.scalar(select(func.count()).select_from(ExerciseMedia)) or 0
-    )
+    media_count = int(await db.scalar(select(func.count()).select_from(ExerciseMedia)) or 0)
     avatars = int(
-        await db.scalar(
-            select(func.count()).select_from(User).where(User.avatar_key.is_not(None))
-        )
+        await db.scalar(select(func.count()).select_from(User).where(User.avatar_key.is_not(None)))
         or 0
     )
     return {

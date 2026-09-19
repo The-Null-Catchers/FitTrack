@@ -67,9 +67,7 @@ async def list_goals(
     return goals
 
 
-async def update(
-    db: AsyncSession, user: User, goal_id: uuid.UUID, data: GoalUpdate
-) -> UserGoal:
+async def update(db: AsyncSession, user: User, goal_id: uuid.UUID, data: GoalUpdate) -> UserGoal:
     goal = await get(db, user, goal_id)
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(goal, field, value)
@@ -140,8 +138,7 @@ async def refresh_progress(db: AsyncSession, user: User, goal: UserGoal) -> User
                 WorkoutSession.user_id == user.id,
                 WorkoutSession.status == SessionStatus.COMPLETED,
                 WorkoutSession.is_deleted.is_(False),
-                WorkoutSession.started_at
-                >= datetime.combine(goal.start_date, datetime.min.time()),
+                WorkoutSession.started_at >= datetime.combine(goal.start_date, datetime.min.time()),
             )
         )
         value = float(count or 0)
@@ -155,8 +152,7 @@ async def refresh_progress(db: AsyncSession, user: User, goal: UserGoal) -> User
                 WorkoutSession.user_id == user.id,
                 WorkoutSession.status == SessionStatus.COMPLETED,
                 WorkoutSession.is_deleted.is_(False),
-                WorkoutSession.started_at
-                >= datetime.combine(week_start, datetime.min.time()),
+                WorkoutSession.started_at >= datetime.combine(week_start, datetime.min.time()),
             )
         )
         value = float(count or 0)
@@ -203,7 +199,7 @@ async def serialize_many(db: AsyncSession, goals: list[UserGoal]) -> list[dict[s
         rows = await db.execute(
             select(Exercise.id, Exercise.name).where(Exercise.id.in_(exercise_ids))
         )
-        names = dict(rows)
+        names = dict(rows.all())
     return [serialize(goal, exercise_name=names.get(goal.exercise_id)) for goal in goals]
 
 

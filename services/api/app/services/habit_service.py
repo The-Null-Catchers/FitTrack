@@ -49,8 +49,9 @@ async def list_habits(
             .group_by(HabitLog.habit_id)
         )
     }
-    return [serialize(h, today=today_logs.get(h.id), completed_30d=rates.get(h.id, 0))
-            for h in habits]
+    return [
+        serialize(h, today=today_logs.get(h.id), completed_30d=rates.get(h.id, 0)) for h in habits
+    ]
 
 
 async def get_habit(db: AsyncSession, user: User, habit_id: uuid.UUID) -> Habit:
@@ -78,9 +79,7 @@ async def create(db: AsyncSession, user: User, data: HabitCreate) -> Habit:
     return habit
 
 
-async def update(
-    db: AsyncSession, user: User, habit_id: uuid.UUID, data: HabitUpdate
-) -> Habit:
+async def update(db: AsyncSession, user: User, habit_id: uuid.UUID, data: HabitUpdate) -> Habit:
     habit = await get_habit(db, user, habit_id)
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(habit, field, value)
@@ -103,40 +102,38 @@ def _applies_on(habit: Habit, day: date) -> bool:
 
 
 async def _recompute_streak(db: AsyncSession, habit: Habit, *, today: date) -> None:
-    """Walk backwards from today counting consecutive completed days.
+    """Recalculate the current and longest streak from the completion log.
 
-    Days the habit doesn't apply to are skipped rather than breaking the
-    streak, and today being unlogged doesn't end a streak that ran to yesterday.
+    Days the habit doesn't apply to are skipped rather than breaking a run, and
+    an unlogged *today* doesn't end a streak that ran through yesterday — the
+    day isn't over yet.
     """
-    logs = {
-        log.logged_on: log
+    completed = {
+        log.logged_on
         for log in await db.scalars(
-            select(HabitLog)
-            .where(
-                HabitLog.habit_id == habit.id,
-                HabitLog.logged_on >= today - timedelta(days=400),
-                HabitLog.is_completed.is_(True),
-            )
+            select(HabitLog).where(HabitLog.habit_id == habit.id, HabitLog.is_completed.is_(True))
         )
     }
+    if not completed:
+        habit.current_streak = 0
+        return
 
-    streak = 0
-    cursor = today
-    if cursor not in logs and _applies_on(habit, cursor):
-        cursor -= timedelta(days=1)
-
-    for _ in range(400):
+    run = 0
+    longest = 0
+    cursor = min(completed)
+    while cursor <= today:
         if not _applies_on(habit, cursor):
-            cursor -= timedelta(days=1)
+            cursor += timedelta(days=1)
             continue
-        if cursor in logs:
-            streak += 1
-            cursor -= timedelta(days=1)
-            continue
-        break
+        if cursor in completed:
+            run += 1
+            longest = max(longest, run)
+        elif cursor != today:
+            run = 0
+        cursor += timedelta(days=1)
 
-    habit.current_streak = streak
-    habit.longest_streak = max(habit.longest_streak, streak)
+    habit.current_streak = run
+    habit.longest_streak = max(habit.longest_streak, longest)
 
 
 async def log(
@@ -144,9 +141,7 @@ async def log(
 ) -> tuple[Habit, HabitLog]:
     habit = await get_habit(db, user, habit_id)
     entry = await db.scalar(
-        select(HabitLog).where(
-            HabitLog.habit_id == habit.id, HabitLog.logged_on == data.logged_on
-        )
+        select(HabitLog).where(HabitLog.habit_id == habit.id, HabitLog.logged_on == data.logged_on)
     )
     if entry is None:
         entry = HabitLog(
@@ -171,9 +166,7 @@ async def log(
     return habit, entry
 
 
-async def unlog(
-    db: AsyncSession, user: User, habit_id: uuid.UUID, on: date
-) -> Habit:
+async def unlog(db: AsyncSession, user: User, habit_id: uuid.UUID, on: date) -> Habit:
     habit = await get_habit(db, user, habit_id)
     entry = await db.scalar(
         select(HabitLog).where(HabitLog.habit_id == habit.id, HabitLog.logged_on == on)

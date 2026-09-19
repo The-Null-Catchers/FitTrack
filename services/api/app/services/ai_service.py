@@ -12,8 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.attributes import set_committed_value
 
-from app.ai import ChatMessage, CompletionRequest, get_ai_provider
-from app.ai import planner, safety
+from app.ai import ChatMessage, CompletionRequest, get_ai_provider, planner, safety
 from app.core.config import settings
 from app.core.errors import NotFoundError, PermissionError_, RateLimitError, ValidationError
 from app.core.logging import get_logger
@@ -132,13 +131,9 @@ async def _get_or_create_conversation(
 
 async def chat(db: AsyncSession, user: User, data: ChatRequest) -> dict[str, Any]:
     record = await _quota_check(db, user, "ai_messages", settings.AI_DAILY_MESSAGE_LIMIT)
-    conversation = await _get_or_create_conversation(
-        db, user, data.conversation_id, data.message
-    )
+    conversation = await _get_or_create_conversation(db, user, data.conversation_id, data.message)
 
-    db.add(
-        AIMessage(conversation_id=conversation.id, role="user", content=data.message)
-    )
+    db.add(AIMessage(conversation_id=conversation.id, role="user", content=data.message))
     await db.flush()
 
     # The safety layer answers medical questions itself — no model call at all.
@@ -185,9 +180,7 @@ async def chat(db: AsyncSession, user: User, data: ChatRequest) -> dict[str, Any
     started = time.perf_counter()
     try:
         result = await provider.complete(
-            CompletionRequest(
-                system=system, messages=messages, max_tokens=settings.AI_MAX_TOKENS
-            )
+            CompletionRequest(system=system, messages=messages, max_tokens=settings.AI_MAX_TOKENS)
         )
     except Exception as exc:
         generation.status = AIGenerationStatus.FAILED
@@ -265,9 +258,7 @@ async def get_conversation(
     }
 
 
-async def delete_conversation(
-    db: AsyncSession, user: User, conversation_id: uuid.UUID
-) -> None:
+async def delete_conversation(db: AsyncSession, user: User, conversation_id: uuid.UUID) -> None:
     conversation = await db.get(AIConversation, conversation_id)
     if conversation is None or conversation.is_deleted:
         raise NotFoundError("We couldn't find that conversation.")
@@ -541,14 +532,15 @@ async def progress_summary(
 
 async def usage(db: AsyncSession, user: User) -> dict[str, Any]:
     today = date.today().isoformat()
-    rows = {
-        metric: count
-        for metric, count in await db.execute(
-            select(UsageRecord.metric, UsageRecord.count).where(
-                UsageRecord.user_id == user.id, UsageRecord.day == today
+    rows = dict(
+        (
+            await db.execute(
+                select(UsageRecord.metric, UsageRecord.count).where(
+                    UsageRecord.user_id == user.id, UsageRecord.day == today
+                )
             )
-        )
-    }
+        ).all()
+    )
     return {
         "day": today,
         "messages_used": rows.get("ai_messages", 0),
@@ -594,9 +586,7 @@ async def admin_usage_rows(db: AsyncSession, *, days: int = 14) -> list[dict[str
             func.count(),
             func.coalesce(func.sum(AIGeneration.input_tokens), 0),
             func.coalesce(func.sum(AIGeneration.output_tokens), 0),
-            func.sum(
-                func.case((AIGeneration.status == AIGenerationStatus.FAILED, 1), else_=0)
-            ),
+            func.sum(func.case((AIGeneration.status == AIGenerationStatus.FAILED, 1), else_=0)),
         )
         .where(AIGeneration.created_at >= since)
         .group_by(func.date(AIGeneration.created_at), AIGeneration.kind)

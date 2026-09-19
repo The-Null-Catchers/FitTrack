@@ -152,8 +152,7 @@ def suggest(
         short = [
             s
             for s in recent_sessions[:SESSIONS_REQUIRED]
-            if s.working_sets
-            and max((x.reps or 0) for x in s.working_sets) < target_reps_min
+            if s.working_sets and max((x.reps or 0) for x in s.working_sets) < target_reps_min
         ]
         if len(short) >= SESSIONS_REQUIRED:
             top = _top_weight(latest)

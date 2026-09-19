@@ -74,9 +74,11 @@ async def update_profile(db: AsyncSession, user: User, data: ProfileUpdate) -> U
         setattr(profile, field, value)
 
     # Keep estimated targets aligned with the inputs unless the user pinned them.
-    if not profile.targets_are_manual and {
-        "current_weight_kg", "height_cm", "activity_level", "primary_goal", "date_of_birth"
-    } & values.keys():
+    if (
+        not profile.targets_are_manual
+        and {"current_weight_kg", "height_cm", "activity_level", "primary_goal", "date_of_birth"}
+        & values.keys()
+    ):
         _apply_estimated_targets(profile)
 
     await db.commit()
@@ -104,9 +106,7 @@ def _apply_estimated_targets(profile: UserProfile) -> dict[str, int] | None:
     return estimate
 
 
-async def complete_onboarding(
-    db: AsyncSession, user: User, data: OnboardingRequest
-) -> UserProfile:
+async def complete_onboarding(db: AsyncSession, user: User, data: OnboardingRequest) -> UserProfile:
     profile = await get_profile(db, user)
 
     if data.full_name:
@@ -136,9 +136,7 @@ async def complete_onboarding(
         select(BodyWeight).where(BodyWeight.user_id == user.id, BodyWeight.recorded_on == today)
     )
     if existing is None:
-        db.add(
-            BodyWeight(user_id=user.id, recorded_on=today, weight_kg=data.current_weight_kg)
-        )
+        db.add(BodyWeight(user_id=user.id, recorded_on=today, weight_kg=data.current_weight_kg))
     else:
         existing.weight_kg = data.current_weight_kg
 
@@ -285,9 +283,7 @@ def _jsonable(value: Any) -> Any:
 async def account_statistics(db: AsyncSession, user: User) -> dict[str, int]:
     async def count(model: Any) -> int:
         return int(
-            await db.scalar(
-                select(func.count()).select_from(model).where(model.user_id == user.id)
-            )
+            await db.scalar(select(func.count()).select_from(model).where(model.user_id == user.id))
             or 0
         )
 

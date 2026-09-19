@@ -32,9 +32,7 @@ class AnthropicProvider(AIProvider):
             "max_tokens": request.max_tokens,
             "temperature": request.temperature,
             "system": system,
-            "messages": [
-                {"role": m.role, "content": m.content} for m in request.messages
-            ],
+            "messages": [{"role": m.role, "content": m.content} for m in request.messages],
         }
         try:
             async with httpx.AsyncClient(timeout=settings.AI_TIMEOUT_SECONDS) as client:
@@ -57,7 +55,9 @@ class AnthropicProvider(AIProvider):
 
         body = response.json()
         text = "".join(
-            block.get("text", "") for block in body.get("content", []) if block.get("type") == "text"
+            block.get("text", "")
+            for block in body.get("content", [])
+            if block.get("type") == "text"
         )
         usage = body.get("usage", {})
         return CompletionResult(

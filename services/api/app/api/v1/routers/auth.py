@@ -55,9 +55,7 @@ async def register(
         ip=client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )
-    return AuthResponse(
-        **tokens.model_dump(), user=UserRead(**user_service.serialize_user(user))
-    )
+    return AuthResponse(**tokens.model_dump(), user=UserRead(**user_service.serialize_user(user)))
 
 
 @router.post("/login", response_model=AuthResponse, summary="Sign in")
@@ -72,9 +70,7 @@ async def login(
         ip=client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )
-    return AuthResponse(
-        **tokens.model_dump(), user=UserRead(**user_service.serialize_user(user))
-    )
+    return AuthResponse(**tokens.model_dump(), user=UserRead(**user_service.serialize_user(user)))
 
 
 @router.post("/refresh", response_model=TokenPair, summary="Rotate the refresh token")
@@ -89,35 +85,27 @@ async def refresh(payload: RefreshRequest, request: Request, db: DbSession) -> T
 
 
 @router.post("/logout", response_model=MessageResponse, summary="Sign out")
-async def logout(
-    payload: LogoutRequest, db: DbSession, user: CurrentUser
-) -> MessageResponse:
+async def logout(payload: LogoutRequest, db: DbSession, user: CurrentUser) -> MessageResponse:
     await auth_service.logout(
         db, user=user, refresh_token=payload.refresh_token, all_devices=payload.all_devices
     )
     return MessageResponse(message="You've been signed out.")
 
 
-@router.post(
-    "/forgot-password", response_model=MessageResponse, summary="Request a reset link"
-)
+@router.post("/forgot-password", response_model=MessageResponse, summary="Request a reset link")
 async def forgot_password(
     payload: ForgotPasswordRequest, db: DbSession, _: RateLimited
 ) -> MessageResponse:
     await auth_service.request_password_reset(db, email=payload.email)
     # Deliberately identical whether or not the address exists.
-    return MessageResponse(
-        message="If that email is registered, we've sent a reset link to it."
-    )
+    return MessageResponse(message="If that email is registered, we've sent a reset link to it.")
 
 
 @router.post("/reset-password", response_model=MessageResponse, summary="Set a new password")
 async def reset_password(
     payload: ResetPasswordRequest, db: DbSession, _: RateLimited
 ) -> MessageResponse:
-    await auth_service.reset_password(
-        db, token=payload.token, new_password=payload.new_password
-    )
+    await auth_service.reset_password(db, token=payload.token, new_password=payload.new_password)
     return MessageResponse(message="Your password has been updated. Please sign in.")
 
 
@@ -132,9 +120,7 @@ async def verify_email(payload: VerifyEmailRequest, db: DbSession) -> UserRead:
     response_model=MessageResponse,
     summary="Resend the confirmation email",
 )
-async def resend_verification(
-    db: DbSession, user: CurrentUser, _: RateLimited
-) -> MessageResponse:
+async def resend_verification(db: DbSession, user: CurrentUser, _: RateLimited) -> MessageResponse:
     await auth_service.resend_verification(db, user)
     return MessageResponse(message="We've sent a new confirmation link to your inbox.")
 
@@ -152,9 +138,7 @@ async def change_password(
     return MessageResponse(message="Your password has been updated.")
 
 
-@router.get(
-    "/sessions", response_model=list[SessionSummary], summary="List signed-in devices"
-)
+@router.get("/sessions", response_model=list[SessionSummary], summary="List signed-in devices")
 async def list_sessions(db: DbSession, user: CurrentUser) -> list[SessionSummary]:
     sessions = await auth_service.list_sessions(db, user)
     return [
@@ -181,15 +165,11 @@ async def revoke_session(session_id: uuid.UUID, db: DbSession, user: CurrentUser
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.post(
-    "/delete-account", response_model=MessageResponse, summary="Delete this account"
-)
+@router.post("/delete-account", response_model=MessageResponse, summary="Delete this account")
 async def delete_account(
     payload: DeleteAccountRequest, request: Request, db: DbSession, user: CurrentUser
 ) -> MessageResponse:
     await auth_service.delete_account(
         db, user=user, password=payload.password, ip=client_ip(request)
     )
-    return MessageResponse(
-        message="Your account has been deleted and you've been signed out."
-    )
+    return MessageResponse(message="Your account has been deleted and you've been signed out.")

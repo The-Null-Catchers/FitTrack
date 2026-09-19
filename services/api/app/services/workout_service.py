@@ -49,9 +49,7 @@ async def _load(db: AsyncSession, session_id: uuid.UUID) -> WorkoutSession | Non
     )
 
 
-async def get_for_user(
-    db: AsyncSession, session_id: uuid.UUID, user: User
-) -> WorkoutSession:
+async def get_for_user(db: AsyncSession, session_id: uuid.UUID, user: User) -> WorkoutSession:
     session = await _load(db, session_id)
     if session is None or session.is_deleted:
         raise NotFoundError("We couldn't find that workout.")
@@ -132,9 +130,9 @@ async def start(
 
     session = WorkoutSession(
         user_id=user.id,
-        program_id=uuid.UUID(data.program_id) if data.program_id else (
-            day.program_id if day else None
-        ),
+        program_id=uuid.UUID(data.program_id)
+        if data.program_id
+        else (day.program_id if day else None),
         day_id=day.id if day else None,
         name=data.name or (day.name if day else "Quick workout"),
         status=SessionStatus.IN_PROGRESS,
@@ -330,9 +328,7 @@ async def update_set(
     logged = await db.scalar(
         select(WorkoutSet)
         .options(
-            selectinload(WorkoutSet.session_exercise).selectinload(
-                WorkoutSessionExercise.session
-            )
+            selectinload(WorkoutSet.session_exercise).selectinload(WorkoutSessionExercise.session)
         )
         .where(WorkoutSet.id == set_id)
     )
@@ -357,9 +353,7 @@ async def delete_set(db: AsyncSession, set_id: uuid.UUID, user: User) -> Workout
     logged = await db.scalar(
         select(WorkoutSet)
         .options(
-            selectinload(WorkoutSet.session_exercise).selectinload(
-                WorkoutSessionExercise.session
-            )
+            selectinload(WorkoutSet.session_exercise).selectinload(WorkoutSessionExercise.session)
         )
         .where(WorkoutSet.id == set_id)
     )
@@ -431,9 +425,7 @@ async def finish(
     )
 
     records = await records_service.evaluate_session(db, session)
-    await exercise_service.bump_popularity(
-        db, [item.exercise_id for item in session.exercises]
-    )
+    await exercise_service.bump_popularity(db, [item.exercise_id for item in session.exercises])
     await db.commit()
     return await get_for_user(db, session_id, user), records
 
@@ -453,15 +445,14 @@ async def delete_session(db: AsyncSession, session_id: uuid.UUID, user: User) ->
     await db.commit()
 
 
-async def duplicate(
-    db: AsyncSession, session_id: uuid.UUID, user: User
-) -> WorkoutSession:
+async def duplicate(db: AsyncSession, session_id: uuid.UUID, user: User) -> WorkoutSession:
     """Start a fresh workout with the same exercises (sets left empty)."""
     source = await get_for_user(db, session_id, user)
     active = await get_active(db, user)
     if active is not None:
         raise ConflictError(
-            "You already have a workout in progress.", code="workout_in_progress",
+            "You already have a workout in progress.",
+            code="workout_in_progress",
             details={"session_id": str(active.id)},
         )
 

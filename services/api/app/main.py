@@ -87,7 +87,7 @@ def create_app() -> FastAPI:
     return app
 
 
-def _openapi_factory(app: FastAPI):  # noqa: ANN202 - FastAPI hook
+def _openapi_factory(app: FastAPI):
     def custom_openapi() -> dict:
         if app.openapi_schema:
             return app.openapi_schema

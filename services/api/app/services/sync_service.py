@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError
 from app.core.logging import get_logger
+from app.db.types import normalize_datetime_param
 from app.models.body import BodyMeasurement, BodyWeight
 from app.models.habit import HabitLog
 from app.models.nutrition import Meal, WaterLog
@@ -35,9 +36,7 @@ logger = get_logger(__name__)
 PULL_LIMIT = 500
 
 
-async def _already_applied(
-    db: AsyncSession, user: User, client_uuid: str
-) -> SyncOperation | None:
+async def _already_applied(db: AsyncSession, user: User, client_uuid: str) -> SyncOperation | None:
     return await db.scalar(
         select(SyncOperation).where(
             SyncOperation.user_id == user.id, SyncOperation.client_uuid == client_uuid
@@ -105,9 +104,7 @@ async def _apply_workout_session(
         for key in ("program_id", "day_id", "name", "started_at", "client_uuid")
         if key in payload
     }
-    session, created = await workout_service.start(
-        db, user, SessionStartRequest(**start_payload)
-    )
+    session, created = await workout_service.start(db, user, SessionStartRequest(**start_payload))
 
     if not finished:
         return ("applied" if created else "duplicate"), str(session.id)
@@ -235,15 +232,15 @@ def _rows(model: Any, instances: list[Any]) -> list[dict[str, Any]]:
     ]
 
 
-async def pull(
-    db: AsyncSession, user: User, *, since: datetime | None
-) -> dict[str, Any]:
+async def pull(db: AsyncSession, user: User, *, since: datetime | None) -> dict[str, Any]:
     """Everything that changed server-side since ``since``."""
+
+    cutoff = normalize_datetime_param(db, since)
 
     async def changed(model: Any) -> list[Any]:
         stmt = select(model).where(model.user_id == user.id)
-        if since is not None:
-            stmt = stmt.where(model.updated_at > since)
+        if cutoff is not None:
+            stmt = stmt.where(model.updated_at > cutoff)
         return list(await db.scalars(stmt.order_by(model.updated_at).limit(PULL_LIMIT)))
 
     sessions = await changed(WorkoutSession)

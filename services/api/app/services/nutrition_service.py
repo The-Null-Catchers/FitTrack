@@ -47,9 +47,7 @@ async def search_foods(
     base = select(Food).where(Food.is_deleted.is_(False), _visible_foods(user))
     if query:
         needle = f"%{query.strip().lower()}%"
-        base = base.where(
-            or_(Food.search_text.like(needle), func.lower(Food.name).like(needle))
-        )
+        base = base.where(or_(Food.search_text.like(needle), func.lower(Food.name).like(needle)))
     if custom_only:
         base = base.where(Food.user_id == user.id)
     if favorites_only:
@@ -95,18 +93,13 @@ async def recent_foods(db: AsyncSession, user: User, *, limit: int = 20) -> list
     ids = [row[0] for row in rows]
     if not ids:
         return []
-    foods = {
-        food.id: food
-        for food in await db.scalars(select(Food).where(Food.id.in_(ids)))
-    }
+    foods = {food.id: food for food in await db.scalars(select(Food).where(Food.id.in_(ids)))}
     return [foods[i] for i in ids if i in foods]
 
 
 async def get_food(db: AsyncSession, user: User, food_id: uuid.UUID) -> Food:
     food = await db.scalar(
-        select(Food).where(
-            Food.id == food_id, Food.is_deleted.is_(False), _visible_foods(user)
-        )
+        select(Food).where(Food.id == food_id, Food.is_deleted.is_(False), _visible_foods(user))
     )
     if food is None:
         raise NotFoundError("We couldn't find that food.")
@@ -134,9 +127,7 @@ async def create_food(db: AsyncSession, user: User, data: FoodCreate) -> Food:
     return food
 
 
-async def update_food(
-    db: AsyncSession, user: User, food_id: uuid.UUID, data: FoodUpdate
-) -> Food:
+async def update_food(db: AsyncSession, user: User, food_id: uuid.UUID, data: FoodUpdate) -> Food:
     food = await get_food(db, user, food_id)
     if food.user_id != user.id and not user.is_admin:
         raise PermissionError_("You can only edit foods you created.")
@@ -165,9 +156,7 @@ async def delete_food(db: AsyncSession, user: User, food_id: uuid.UUID) -> None:
 async def toggle_favorite(db: AsyncSession, user: User, food_id: uuid.UUID) -> bool:
     await get_food(db, user, food_id)
     existing = await db.scalar(
-        select(FavoriteFood).where(
-            FavoriteFood.user_id == user.id, FavoriteFood.food_id == food_id
-        )
+        select(FavoriteFood).where(FavoriteFood.user_id == user.id, FavoriteFood.food_id == food_id)
     )
     if existing is not None:
         await db.delete(existing)
@@ -361,9 +350,7 @@ async def get_meal(db: AsyncSession, user: User, meal_id: uuid.UUID) -> Meal:
     return meal
 
 
-async def update_meal(
-    db: AsyncSession, user: User, meal_id: uuid.UUID, data: MealUpdate
-) -> Meal:
+async def update_meal(db: AsyncSession, user: User, meal_id: uuid.UUID, data: MealUpdate) -> Meal:
     meal = await get_meal(db, user, meal_id)
     original_day = meal.logged_on
 
@@ -467,8 +454,7 @@ async def get_day(db: AsyncSession, user: User, on: date) -> dict[str, Any]:
 
 def macro_progress(consumed: float, target: float | None) -> dict[str, Any]:
     if not target:
-        return {"consumed": round(consumed, 1), "target": None, "remaining": None,
-                "percent": None}
+        return {"consumed": round(consumed, 1), "target": None, "remaining": None, "percent": None}
     return {
         "consumed": round(consumed, 1),
         "target": float(target),

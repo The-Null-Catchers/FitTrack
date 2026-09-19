@@ -110,9 +110,7 @@ class UserProfile(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     current_weight_kg: Mapped[float | None] = mapped_column(Float, default=None)
     target_weight_kg: Mapped[float | None] = mapped_column(Float, default=None)
 
-    unit_system: Mapped[str] = mapped_column(
-        String(16), default=UnitSystem.METRIC, nullable=False
-    )
+    unit_system: Mapped[str] = mapped_column(String(16), default=UnitSystem.METRIC, nullable=False)
     primary_goal: Mapped[str] = mapped_column(
         String(32), default=FitnessGoal.GENERAL_FITNESS, nullable=False
     )

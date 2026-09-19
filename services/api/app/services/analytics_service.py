@@ -16,13 +16,13 @@ from app.models.enums import GoalStatus, SessionStatus
 from app.models.exercise import Exercise
 from app.models.notification import Notification
 from app.models.nutrition import DailyNutrition
+from app.models.user import User
 from app.models.workout import (
     PersonalRecord,
     WorkoutSession,
     WorkoutSessionExercise,
     WorkoutSet,
 )
-from app.models.user import User
 from app.services import (
     exercise_service,
     goal_service,
@@ -73,7 +73,9 @@ async def _completed_sessions(
     return list(rows)
 
 
-async def workout_streak(db: AsyncSession, user: User, *, today: date | None = None) -> tuple[int, int]:
+async def workout_streak(
+    db: AsyncSession, user: User, *, today: date | None = None
+) -> tuple[int, int]:
     """(current, longest) streak in consecutive *days with a workout*.
 
     Rest days don't break a streak on their own — a gap of more than one day
@@ -152,9 +154,7 @@ async def dashboard(db: AsyncSession, user: User, *, today: date | None = None) 
             "key": "body_weight",
             "label": "Body weight",
             "unit": "kg",
-            "points": [
-                {"x": row.recorded_on, "y": row.weight_kg} for row in weight_rows
-            ],
+            "points": [{"x": row.recorded_on, "y": row.weight_kg} for row in weight_rows],
             "trend": [
                 {"x": row.recorded_on, "y": value}
                 for row, value in zip(weight_rows, trend, strict=True)
@@ -225,9 +225,7 @@ async def dashboard(db: AsyncSession, user: User, *, today: date | None = None) 
             "completed": len(trained_days),
             "target": weekly_target,
             "percent": round(min(len(trained_days) / max(weekly_target, 1), 1) * 100, 1),
-            "days": [
-                (week_start + timedelta(days=i)) in trained_days for i in range(7)
-            ],
+            "days": [(week_start + timedelta(days=i)) in trained_days for i in range(7)],
         },
         "weight_trend": weight_series,
         "latest_weight_kg": weight_rows[-1].weight_kg if weight_rows else None,
@@ -269,10 +267,7 @@ async def body_weight_chart(
                 "label": "Body weight",
                 "unit": "kg",
                 "points": [{"x": r.recorded_on, "y": r.weight_kg} for r in rows],
-                "trend": [
-                    {"x": r.recorded_on, "y": v}
-                    for r, v in zip(rows, trend, strict=True)
-                ],
+                "trend": [{"x": r.recorded_on, "y": v} for r, v in zip(rows, trend, strict=True)],
             }
         )
         change_abs = round(values[-1] - values[0], 2)
@@ -339,9 +334,7 @@ async def measurement_chart(
     }
 
 
-async def volume_chart(
-    db: AsyncSession, user: User, *, time_range: str = "30d"
-) -> dict[str, Any]:
+async def volume_chart(db: AsyncSession, user: User, *, time_range: str = "30d") -> dict[str, Any]:
     start, end = range_bounds(time_range)
     sessions = await _completed_sessions(db, user, start=start, end=end)
 
@@ -381,9 +374,7 @@ async def volume_chart(
         "end_date": days[-1] if days else end,
         "series": series,
         "summary": (
-            f"You lifted {round(total):,} kg across {len(sessions)} workouts."
-            if sessions
-            else None
+            f"You lifted {round(total):,} kg across {len(sessions)} workouts." if sessions else None
         ),
         "change_percent": None,
         "change_absolute": round(total, 1) if sessions else None,
@@ -596,7 +587,9 @@ async def training_overview(
     }
 
 
-async def trained_exercises(db: AsyncSession, user: User, *, limit: int = 40) -> list[dict[str, Any]]:
+async def trained_exercises(
+    db: AsyncSession, user: User, *, limit: int = 40
+) -> list[dict[str, Any]]:
     """Exercises the user has actually logged — the picker for progress charts."""
     rows = await db.execute(
         select(
@@ -616,9 +609,7 @@ async def trained_exercises(db: AsyncSession, user: User, *, limit: int = 40) ->
     ids = [row[0] for row in rows]
     if not ids:
         return []
-    exercises = {
-        e.id: e for e in await db.scalars(select(Exercise).where(Exercise.id.in_(ids)))
-    }
+    exercises = {e.id: e for e in await db.scalars(select(Exercise).where(Exercise.id.in_(ids)))}
     return [exercise_service.serialize(exercises[i]) for i in ids if i in exercises]
 
 

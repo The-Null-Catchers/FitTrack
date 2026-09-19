@@ -44,8 +44,13 @@ def _normalize_email(email: str) -> str:
 
 
 async def _issue_token_pair(
-    db: AsyncSession, user: User, device: DeviceInfo | None, *, ip: str | None,
-    user_agent: str | None, replaces: UserSession | None = None,
+    db: AsyncSession,
+    user: User,
+    device: DeviceInfo | None,
+    *,
+    ip: str | None,
+    user_agent: str | None,
+    replaces: UserSession | None = None,
 ) -> TokenPair:
     """Create a session row and the matching access/refresh pair."""
     refresh_token = generate_opaque_token(48)
@@ -130,8 +135,13 @@ async def register(
     verification_token = await _create_verification_token(db, user, PURPOSE_EMAIL_VERIFICATION)
     tokens = await _issue_token_pair(db, user, device, ip=ip, user_agent=user_agent)
     await audit.record(
-        db, action="auth.register", actor_id=user.id, entity_type="user", entity_id=user.id,
-        ip_address=ip, user_agent=user_agent,
+        db,
+        action="auth.register",
+        actor_id=user.id,
+        entity_type="user",
+        entity_id=user.id,
+        ip_address=ip,
+        user_agent=user_agent,
     )
     await db.commit()
 
@@ -167,7 +177,10 @@ async def login(
         raise AuthenticationError(_INVALID_CREDENTIALS, code="invalid_credentials")
     if not verify_password(password, user.password_hash):
         await audit.record(
-            db, action="auth.login_failed", actor_id=user.id, ip_address=ip,
+            db,
+            action="auth.login_failed",
+            actor_id=user.id,
+            ip_address=ip,
             user_agent=user_agent,
         )
         await db.commit()
@@ -203,7 +216,9 @@ async def refresh(
     every session for that user is revoked.
     """
     token_hash = fingerprint(refresh_token)
-    session = await db.scalar(select(UserSession).where(UserSession.refresh_token_hash == token_hash))
+    session = await db.scalar(
+        select(UserSession).where(UserSession.refresh_token_hash == token_hash)
+    )
     if session is None:
         raise AuthenticationError("Please sign in again.", code="invalid_refresh_token")
 
@@ -219,7 +234,10 @@ async def refresh(
             .values(revoked_at=now)
         )
         await audit.record(
-            db, action="auth.refresh_reuse_detected", actor_id=session.user_id, ip_address=ip,
+            db,
+            action="auth.refresh_reuse_detected",
+            actor_id=session.user_id,
+            ip_address=ip,
             note="A rotated refresh token was replayed; all sessions were revoked.",
         )
         await db.commit()
@@ -227,8 +245,9 @@ async def refresh(
             "For your security we signed you out. Please sign in again.", code="token_reused"
         )
     if expires_at <= now:
-        raise AuthenticationError("Your session has expired. Please sign in again.",
-                                  code="refresh_expired")
+        raise AuthenticationError(
+            "Your session has expired. Please sign in again.", code="refresh_expired"
+        )
 
     user = await db.scalar(
         select(User).where(User.id == session.user_id, User.is_deleted.is_(False))
@@ -270,8 +289,9 @@ async def logout(
             )
             .values(revoked_at=now)
         )
-    await audit.record(db, action="auth.logout", actor_id=user.id,
-                       metadata={"all_devices": all_devices})
+    await audit.record(
+        db, action="auth.logout", actor_id=user.id, metadata={"all_devices": all_devices}
+    )
     await db.commit()
 
 
@@ -291,16 +311,22 @@ async def revoke_session(db: AsyncSession, user: User, session_id: uuid.UUID) ->
     if session is None:
         raise NotFoundError("We couldn't find that device session.")
     session.revoked_at = datetime.now(UTC)
-    await audit.record(db, action="auth.session_revoked", actor_id=user.id,
-                       entity_type="user_session", entity_id=session_id)
+    await audit.record(
+        db,
+        action="auth.session_revoked",
+        actor_id=user.id,
+        entity_type="user_session",
+        entity_id=session_id,
+    )
     await db.commit()
 
 
 async def request_password_reset(db: AsyncSession, *, email: str) -> None:
     """Always succeeds from the caller's point of view — no account enumeration."""
     user = await db.scalar(
-        select(User).where(func.lower(User.email) == _normalize_email(email),
-                           User.is_deleted.is_(False))
+        select(User).where(
+            func.lower(User.email) == _normalize_email(email), User.is_deleted.is_(False)
+        )
     )
     if user is None:
         logger.info("auth.password_reset_unknown_email")
@@ -330,14 +356,16 @@ async def _consume_token(db: AsyncSession, token: str, purpose: str) -> Verifica
         )
     )
     if record is None or record.consumed_at is not None:
-        raise ValidationError("That link is no longer valid. Please request a new one.",
-                              code="invalid_token")
+        raise ValidationError(
+            "That link is no longer valid. Please request a new one.", code="invalid_token"
+        )
     expires_at = record.expires_at
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=UTC)
     if expires_at <= datetime.now(UTC):
-        raise ValidationError("That link has expired. Please request a new one.",
-                              code="token_expired")
+        raise ValidationError(
+            "That link has expired. Please request a new one.", code="token_expired"
+        )
     record.consumed_at = datetime.now(UTC)
     return record
 
@@ -388,8 +416,9 @@ async def change_password(
     db: AsyncSession, *, user: User, current_password: str, new_password: str
 ) -> None:
     if not user.password_hash or not verify_password(current_password, user.password_hash):
-        raise AuthenticationError("Your current password isn't correct.",
-                                  code="invalid_credentials")
+        raise AuthenticationError(
+            "Your current password isn't correct.", code="invalid_credentials"
+        )
     user.password_hash = hash_password(new_password)
     await audit.record(db, action="auth.password_changed", actor_id=user.id)
     await db.commit()
@@ -403,10 +432,11 @@ async def delete_account(
     Hard deletion of the user's data is handled by a background job so the
     request stays fast even for large accounts.
     """
-    if user.password_hash:
-        if not password or not verify_password(password, user.password_hash):
-            raise AuthenticationError("Please confirm your password to delete your account.",
-                                      code="invalid_credentials")
+    if user.password_hash and (not password or not verify_password(password, user.password_hash)):
+        raise AuthenticationError(
+            "Please confirm your password to delete your account.",
+            code="invalid_credentials",
+        )
 
     user.status = UserStatus.PENDING_DELETION
     user.soft_delete()
@@ -418,7 +448,11 @@ async def delete_account(
         .values(revoked_at=datetime.now(UTC))
     )
     await audit.record(
-        db, action="account.deleted", actor_id=user.id, entity_type="user", entity_id=user.id,
+        db,
+        action="account.deleted",
+        actor_id=user.id,
+        entity_type="user",
+        entity_id=user.id,
         ip_address=ip,
     )
     await db.commit()

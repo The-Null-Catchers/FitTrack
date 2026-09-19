@@ -27,17 +27,11 @@ router = APIRouter(prefix="/nutrition", tags=["nutrition"])
 
 
 @router.get("/day", response_model=NutritionDayRead, summary="A day's nutrition")
-async def get_day(
-    db: DbSession, user: CurrentUser, on: date | None = None
-) -> NutritionDayRead:
-    return NutritionDayRead(
-        **await nutrition_service.get_day(db, user, on or date.today())
-    )
+async def get_day(db: DbSession, user: CurrentUser, on: date | None = None) -> NutritionDayRead:
+    return NutritionDayRead(**await nutrition_service.get_day(db, user, on or date.today()))
 
 
-@router.get(
-    "/range", response_model=list[NutritionDaySummary], summary="Daily totals over a range"
-)
+@router.get("/range", response_model=list[NutritionDaySummary], summary="Daily totals over a range")
 async def get_range(
     db: DbSession, user: CurrentUser, start_date: date, end_date: date
 ) -> list[NutritionDaySummary]:
@@ -79,9 +73,7 @@ async def search_foods(
     )
     return Page.build(
         [
-            FoodRead(
-                **nutrition_service.serialize_food(row, is_favorite=row.id in favorites)
-            )
+            FoodRead(**nutrition_service.serialize_food(row, is_favorite=row.id in favorites))
             for row in rows
         ],
         total=total,
@@ -100,12 +92,8 @@ async def recent_foods(db: DbSession, user: CurrentUser) -> list[FoodRead]:
     ]
 
 
-@router.get(
-    "/foods/barcode/{barcode}", response_model=FoodRead | None, summary="Barcode lookup"
-)
-async def barcode_lookup(
-    barcode: str, db: DbSession, user: CurrentUser
-) -> FoodRead | None:
+@router.get("/foods/barcode/{barcode}", response_model=FoodRead | None, summary="Barcode lookup")
+async def barcode_lookup(barcode: str, db: DbSession, user: CurrentUser) -> FoodRead | None:
     food = await nutrition_service.find_by_barcode(db, user, barcode)
     return FoodRead(**nutrition_service.serialize_food(food)) if food else None
 
@@ -116,9 +104,7 @@ async def barcode_lookup(
     status_code=status.HTTP_201_CREATED,
     summary="Create a custom food",
 )
-async def create_food(
-    payload: FoodCreate, db: DbSession, user: CurrentUser
-) -> FoodRead:
+async def create_food(payload: FoodCreate, db: DbSession, user: CurrentUser) -> FoodRead:
     food = await nutrition_service.create_food(db, user, payload)
     return FoodRead(**nutrition_service.serialize_food(food))
 
@@ -142,9 +128,7 @@ async def delete_food(food_id: uuid.UUID, db: DbSession, user: CurrentUser) -> R
 
 
 @router.post("/foods/{food_id}/favorite", summary="Toggle a food favourite")
-async def toggle_favorite(
-    food_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> dict[str, bool]:
+async def toggle_favorite(food_id: uuid.UUID, db: DbSession, user: CurrentUser) -> dict[str, bool]:
     return {"is_favorite": await nutrition_service.toggle_favorite(db, user, food_id)}
 
 
@@ -170,9 +154,7 @@ async def list_meals(
     status_code=status.HTTP_201_CREATED,
     summary="Log a meal",
 )
-async def create_meal(
-    payload: MealCreate, db: DbSession, user: CurrentUser
-) -> MealRead:
+async def create_meal(payload: MealCreate, db: DbSession, user: CurrentUser) -> MealRead:
     meal = await nutrition_service.create_meal(db, user, payload)
     return MealRead(**nutrition_service.serialize_meal(meal))
 
@@ -191,9 +173,7 @@ async def update_meal(
     return MealRead(**nutrition_service.serialize_meal(meal))
 
 
-@router.delete(
-    "/meals/{meal_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a meal"
-)
+@router.delete("/meals/{meal_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a meal")
 async def delete_meal(meal_id: uuid.UUID, db: DbSession, user: CurrentUser) -> Response:
     await nutrition_service.delete_meal(db, user, meal_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -203,8 +183,6 @@ async def delete_meal(meal_id: uuid.UUID, db: DbSession, user: CurrentUser) -> R
 
 
 @router.post("/water", summary="Log water")
-async def log_water(
-    payload: WaterLogWrite, db: DbSession, user: CurrentUser
-) -> dict[str, int]:
+async def log_water(payload: WaterLogWrite, db: DbSession, user: CurrentUser) -> dict[str, int]:
     total = await nutrition_service.log_water(db, user, payload)
     return {"water_ml": total}

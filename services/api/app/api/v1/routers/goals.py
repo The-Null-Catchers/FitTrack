@@ -50,9 +50,7 @@ async def update_goal(
     return GoalRead(**(await goal_service.serialize_many(db, [goal]))[0])
 
 
-@router.delete(
-    "/{goal_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a goal"
-)
+@router.delete("/{goal_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a goal")
 async def delete_goal(goal_id: uuid.UUID, db: DbSession, user: CurrentUser) -> Response:
     await goal_service.delete(db, user, goal_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

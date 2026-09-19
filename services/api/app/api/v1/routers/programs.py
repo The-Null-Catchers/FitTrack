@@ -26,7 +26,7 @@ from app.services import program_service
 router = APIRouter(prefix="/programs", tags=["programs"])
 
 
-def _detail(program) -> ProgramRead:  # noqa: ANN001 - SQLAlchemy model
+def _detail(program) -> ProgramRead:
     return ProgramRead(**program_service.serialize(program, detail=True))
 
 
@@ -53,9 +53,7 @@ async def list_programs(
     )
 
 
-@router.get(
-    "/templates", response_model=list[ProgramSummary], summary="Starter templates"
-)
+@router.get("/templates", response_model=list[ProgramSummary], summary="Starter templates")
 async def list_templates(db: DbSession, featured_only: bool = False) -> list[ProgramSummary]:
     rows = await program_service.list_templates(db, featured_only=featured_only)
     return [ProgramSummary(**program_service.serialize(row)) for row in rows]
@@ -68,19 +66,17 @@ async def active_program(db: DbSession, user: CurrentUser) -> ProgramRead | None
 
 
 @router.get("/{program_id}", response_model=ProgramRead, summary="Program detail")
-async def get_program(
-    program_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> ProgramRead:
+async def get_program(program_id: uuid.UUID, db: DbSession, user: CurrentUser) -> ProgramRead:
     return _detail(await program_service.get_for_user(db, program_id, user))
 
 
 @router.post(
-    "", response_model=ProgramRead, status_code=status.HTTP_201_CREATED,
+    "",
+    response_model=ProgramRead,
+    status_code=status.HTTP_201_CREATED,
     summary="Create a program",
 )
-async def create_program(
-    payload: ProgramCreate, db: DbSession, user: CurrentUser
-) -> ProgramRead:
+async def create_program(payload: ProgramCreate, db: DbSession, user: CurrentUser) -> ProgramRead:
     return _detail(await program_service.create(db, user, payload))
 
 
@@ -107,25 +103,17 @@ async def duplicate_program(
 
 
 @router.post("/{program_id}/activate", response_model=ProgramRead, summary="Make active")
-async def activate_program(
-    program_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> ProgramRead:
+async def activate_program(program_id: uuid.UUID, db: DbSession, user: CurrentUser) -> ProgramRead:
     return _detail(await program_service.activate(db, program_id, user))
 
 
 @router.post("/{program_id}/archive", response_model=ProgramRead, summary="Archive")
-async def archive_program(
-    program_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> ProgramRead:
+async def archive_program(program_id: uuid.UUID, db: DbSession, user: CurrentUser) -> ProgramRead:
     return _detail(await program_service.archive(db, program_id, user))
 
 
-@router.delete(
-    "/{program_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a program"
-)
-async def delete_program(
-    program_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> Response:
+@router.delete("/{program_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a program")
+async def delete_program(program_id: uuid.UUID, db: DbSession, user: CurrentUser) -> Response:
     await program_service.delete(db, program_id, user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -142,9 +130,7 @@ async def add_day(
     return _detail(await program_service.add_day(db, program_id, user, payload))
 
 
-@router.post(
-    "/{program_id}/days/reorder", response_model=ProgramRead, summary="Reorder days"
-)
+@router.post("/{program_id}/days/reorder", response_model=ProgramRead, summary="Reorder days")
 async def reorder_days(
     program_id: uuid.UUID, payload: ReorderRequest, db: DbSession, user: CurrentUser
 ) -> ProgramRead:
@@ -183,24 +169,16 @@ async def add_day_exercise(
 async def reorder_day_exercises(
     day_id: uuid.UUID, payload: ReorderRequest, db: DbSession, user: CurrentUser
 ) -> ProgramRead:
-    return _detail(
-        await program_service.reorder_day_exercises(db, day_id, user, payload.ids)
-    )
+    return _detail(await program_service.reorder_day_exercises(db, day_id, user, payload.ids))
 
 
-@router.patch(
-    "/day-exercises/{item_id}", response_model=ProgramRead, summary="Edit a prescription"
-)
+@router.patch("/day-exercises/{item_id}", response_model=ProgramRead, summary="Edit a prescription")
 async def update_day_exercise(
     item_id: uuid.UUID, payload: DayExerciseUpdate, db: DbSession, user: CurrentUser
 ) -> ProgramRead:
     return _detail(await program_service.update_day_exercise(db, item_id, user, payload))
 
 
-@router.delete(
-    "/day-exercises/{item_id}", response_model=ProgramRead, summary="Remove an exercise"
-)
-async def remove_day_exercise(
-    item_id: uuid.UUID, db: DbSession, user: CurrentUser
-) -> ProgramRead:
+@router.delete("/day-exercises/{item_id}", response_model=ProgramRead, summary="Remove an exercise")
+async def remove_day_exercise(item_id: uuid.UUID, db: DbSession, user: CurrentUser) -> ProgramRead:
     return _detail(await program_service.remove_day_exercise(db, item_id, user))

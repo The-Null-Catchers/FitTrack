@@ -19,7 +19,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.enums import (
     Difficulty,
     Equipment,
-    ExerciseType,
     FitnessGoal,
     FitnessLevel,
     MuscleGroup,
@@ -51,41 +50,59 @@ GOAL_SCHEME: dict[str, Prescription] = {
 #: Weekly split templates: (day name, focus, [(muscle group, slots)]).
 SPLITS: dict[int, list[tuple[str, str, list[tuple[str, int]]]]] = {
     1: [
-        ("Full Body", "full_body",
-         [(MuscleGroup.LEGS, 2), (MuscleGroup.CHEST, 1), (MuscleGroup.BACK, 2),
-          (MuscleGroup.SHOULDERS, 1), (MuscleGroup.CORE, 1)]),
+        (
+            "Full Body",
+            "full_body",
+            [
+                (MuscleGroup.LEGS, 2),
+                (MuscleGroup.CHEST, 1),
+                (MuscleGroup.BACK, 2),
+                (MuscleGroup.SHOULDERS, 1),
+                (MuscleGroup.CORE, 1),
+            ],
+        ),
     ],
     2: [
-        ("Upper Body", "upper",
-         [(MuscleGroup.CHEST, 2), (MuscleGroup.BACK, 2), (MuscleGroup.SHOULDERS, 1),
-          (MuscleGroup.ARMS, 1)]),
-        ("Lower Body", "lower",
-         [(MuscleGroup.LEGS, 4), (MuscleGroup.CORE, 2)]),
+        (
+            "Upper Body",
+            "upper",
+            [
+                (MuscleGroup.CHEST, 2),
+                (MuscleGroup.BACK, 2),
+                (MuscleGroup.SHOULDERS, 1),
+                (MuscleGroup.ARMS, 1),
+            ],
+        ),
+        ("Lower Body", "lower", [(MuscleGroup.LEGS, 4), (MuscleGroup.CORE, 2)]),
     ],
     3: [
-        ("Push", "push",
-         [(MuscleGroup.CHEST, 2), (MuscleGroup.SHOULDERS, 2), (MuscleGroup.ARMS, 1)]),
-        ("Pull", "pull",
-         [(MuscleGroup.BACK, 3), (MuscleGroup.ARMS, 1), (MuscleGroup.CORE, 1)]),
-        ("Legs", "legs",
-         [(MuscleGroup.LEGS, 4), (MuscleGroup.CORE, 1)]),
+        (
+            "Push",
+            "push",
+            [(MuscleGroup.CHEST, 2), (MuscleGroup.SHOULDERS, 2), (MuscleGroup.ARMS, 1)],
+        ),
+        ("Pull", "pull", [(MuscleGroup.BACK, 3), (MuscleGroup.ARMS, 1), (MuscleGroup.CORE, 1)]),
+        ("Legs", "legs", [(MuscleGroup.LEGS, 4), (MuscleGroup.CORE, 1)]),
     ],
     4: [
-        ("Upper A", "upper",
-         [(MuscleGroup.CHEST, 2), (MuscleGroup.BACK, 2), (MuscleGroup.SHOULDERS, 1)]),
-        ("Lower A", "lower",
-         [(MuscleGroup.LEGS, 4), (MuscleGroup.CORE, 1)]),
-        ("Upper B", "upper",
-         [(MuscleGroup.BACK, 2), (MuscleGroup.SHOULDERS, 2), (MuscleGroup.ARMS, 2)]),
-        ("Lower B", "lower",
-         [(MuscleGroup.LEGS, 3), (MuscleGroup.CORE, 2)]),
+        (
+            "Upper A",
+            "upper",
+            [(MuscleGroup.CHEST, 2), (MuscleGroup.BACK, 2), (MuscleGroup.SHOULDERS, 1)],
+        ),
+        ("Lower A", "lower", [(MuscleGroup.LEGS, 4), (MuscleGroup.CORE, 1)]),
+        (
+            "Upper B",
+            "upper",
+            [(MuscleGroup.BACK, 2), (MuscleGroup.SHOULDERS, 2), (MuscleGroup.ARMS, 2)],
+        ),
+        ("Lower B", "lower", [(MuscleGroup.LEGS, 3), (MuscleGroup.CORE, 2)]),
     ],
     5: [
         ("Push", "push", [(MuscleGroup.CHEST, 3), (MuscleGroup.SHOULDERS, 2)]),
         ("Pull", "pull", [(MuscleGroup.BACK, 3), (MuscleGroup.ARMS, 1)]),
         ("Legs", "legs", [(MuscleGroup.LEGS, 4), (MuscleGroup.CORE, 1)]),
-        ("Upper", "upper",
-         [(MuscleGroup.CHEST, 1), (MuscleGroup.BACK, 2), (MuscleGroup.ARMS, 2)]),
+        ("Upper", "upper", [(MuscleGroup.CHEST, 1), (MuscleGroup.BACK, 2), (MuscleGroup.ARMS, 2)]),
         ("Lower & Core", "lower", [(MuscleGroup.LEGS, 3), (MuscleGroup.CORE, 2)]),
     ],
     6: [
@@ -97,8 +114,9 @@ SPLITS: dict[int, list[tuple[str, str, list[tuple[str, int]]]]] = {
         ("Legs B & Core", "legs", [(MuscleGroup.LEGS, 3), (MuscleGroup.CORE, 2)]),
     ],
 }
-SPLITS[7] = SPLITS[6] + [("Conditioning & Mobility", "cardio",
-                          [(MuscleGroup.CARDIO, 2), (MuscleGroup.MOBILITY, 2)])]
+SPLITS[7] = SPLITS[6] + [
+    ("Conditioning & Mobility", "cardio", [(MuscleGroup.CARDIO, 2), (MuscleGroup.MOBILITY, 2)])
+]
 
 #: Sensible training weekdays per frequency (0 = Monday).
 WEEKDAYS: dict[int, list[int]] = {
@@ -120,8 +138,13 @@ _LEVEL_ALLOWED: dict[str, set[str]] = {
 #: Equipment implicitly available at each location, on top of the user's list.
 _LOCATION_EQUIPMENT: dict[str, set[str]] = {
     WorkoutLocation.GYM: {
-        Equipment.BARBELL, Equipment.DUMBBELL, Equipment.CABLE, Equipment.MACHINE,
-        Equipment.BODYWEIGHT, Equipment.KETTLEBELL, Equipment.CARDIO_MACHINE,
+        Equipment.BARBELL,
+        Equipment.DUMBBELL,
+        Equipment.CABLE,
+        Equipment.MACHINE,
+        Equipment.BODYWEIGHT,
+        Equipment.KETTLEBELL,
+        Equipment.CARDIO_MACHINE,
     },
     WorkoutLocation.HOME: {Equipment.BODYWEIGHT, Equipment.DUMBBELL, Equipment.RESISTANCE_BAND},
     WorkoutLocation.OUTDOOR: {Equipment.BODYWEIGHT},
@@ -145,7 +168,10 @@ def _prescription(goal: str, is_compound: bool) -> Prescription:
 
 def _is_compound(exercise: Exercise) -> bool:
     return bool(exercise.secondary_muscles) and exercise.equipment in {
-        Equipment.BARBELL, Equipment.DUMBBELL, Equipment.MACHINE, Equipment.BODYWEIGHT
+        Equipment.BARBELL,
+        Equipment.DUMBBELL,
+        Equipment.MACHINE,
+        Equipment.BODYWEIGHT,
     }
 
 

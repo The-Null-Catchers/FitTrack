@@ -62,9 +62,7 @@ async def test_onboarding_validates_implausible_values(client, auth_headers):
     assert "height_cm" in response.json()["error"]["details"]["fields"]
 
 
-async def test_manual_targets_are_never_overwritten_by_an_estimate(
-    client, auth_headers
-):
+async def test_manual_targets_are_never_overwritten_by_an_estimate(client, auth_headers):
     await client.post("/api/v1/profile/onboarding", json=ONBOARDING, headers=auth_headers)
 
     manual = await client.put(
@@ -105,9 +103,7 @@ async def test_user_can_re_adopt_the_estimate(client, auth_headers):
 async def test_estimate_endpoint_carries_a_disclaimer(client, auth_headers):
     await client.post("/api/v1/profile/onboarding", json=ONBOARDING, headers=auth_headers)
 
-    response = await client.get(
-        "/api/v1/profile/nutrition-targets/estimate", headers=auth_headers
-    )
+    response = await client.get("/api/v1/profile/nutrition-targets/estimate", headers=auth_headers)
     assert response.status_code == 200
     body = response.json()
     assert body["bmr_kcal"] > 0
@@ -116,9 +112,7 @@ async def test_estimate_endpoint_carries_a_disclaimer(client, auth_headers):
 
 
 async def test_estimate_requires_height_and_weight(client, auth_headers):
-    response = await client.get(
-        "/api/v1/profile/nutrition-targets/estimate", headers=auth_headers
-    )
+    response = await client.get("/api/v1/profile/nutrition-targets/estimate", headers=auth_headers)
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "profile_incomplete"
 
@@ -141,8 +135,14 @@ async def test_data_export_includes_every_domain(client, auth_headers):
 
     payload = response.json()
     for key in (
-        "account", "profile", "workout_sessions", "body_weights", "meals",
-        "habits", "goals", "progress_photos",
+        "account",
+        "profile",
+        "workout_sessions",
+        "body_weights",
+        "meals",
+        "habits",
+        "goals",
+        "progress_photos",
     ):
         assert key in payload
     # The export must never leak raw storage paths.

@@ -157,9 +157,7 @@ class DailyNutrition(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     calorie_target: Mapped[int | None] = mapped_column(Integer, default=None)
     protein_target_g: Mapped[int | None] = mapped_column(Integer, default=None)
 
-    __table_args__ = (
-        UniqueConstraint("user_id", "logged_on", name="uq_daily_nutrition_user_day"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "logged_on", name="uq_daily_nutrition_user_day"),)
 
 
 class WaterLog(Base, UUIDPrimaryKeyMixin, TimestampMixin):

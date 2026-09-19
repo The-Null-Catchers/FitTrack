@@ -27,19 +27,17 @@ async def list_habits(
     include_archived: bool = False,
     on: date | None = None,
 ) -> list[HabitRead]:
-    rows = await habit_service.list_habits(
-        db, user, include_archived=include_archived, on=on
-    )
+    rows = await habit_service.list_habits(db, user, include_archived=include_archived, on=on)
     return [HabitRead(**row) for row in rows]
 
 
 @router.post(
-    "", response_model=HabitRead, status_code=status.HTTP_201_CREATED,
+    "",
+    response_model=HabitRead,
+    status_code=status.HTTP_201_CREATED,
     summary="Create a habit",
 )
-async def create_habit(
-    payload: HabitCreate, db: DbSession, user: CurrentUser
-) -> HabitRead:
+async def create_habit(payload: HabitCreate, db: DbSession, user: CurrentUser) -> HabitRead:
     habit = await habit_service.create(db, user, payload)
     return HabitRead(**habit_service.serialize(habit))
 
@@ -52,9 +50,7 @@ async def update_habit(
     return HabitRead(**habit_service.serialize(habit))
 
 
-@router.delete(
-    "/{habit_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a habit"
-)
+@router.delete("/{habit_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a habit")
 async def delete_habit(habit_id: uuid.UUID, db: DbSession, user: CurrentUser) -> Response:
     await habit_service.delete(db, user, habit_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -76,9 +72,7 @@ async def unlog_habit(
     return HabitRead(**habit_service.serialize(habit))
 
 
-@router.get(
-    "/{habit_id}/history", response_model=list[HabitLogRead], summary="Completion history"
-)
+@router.get("/{habit_id}/history", response_model=list[HabitLogRead], summary="Completion history")
 async def habit_history(
     habit_id: uuid.UUID,
     db: DbSession,

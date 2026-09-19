@@ -102,4 +102,4 @@ class WorkoutDayExercise(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     notes: Mapped[str | None] = mapped_column(Text, default=None)
 
     day: Mapped[WorkoutDay] = relationship(back_populates="exercises")
-    exercise: Mapped["object"] = relationship("Exercise", lazy="selectin")
+    exercise: Mapped[object] = relationship("Exercise", lazy="selectin")

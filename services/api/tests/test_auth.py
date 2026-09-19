@@ -85,9 +85,7 @@ async def test_refresh_rotates_tokens(client, user):
     assert refreshed.json()["refresh_token"] != original
 
 
-async def test_replaying_a_rotated_refresh_token_revokes_every_session(
-    client, db, user
-):
+async def test_replaying_a_rotated_refresh_token_revokes_every_session(client, db, user):
     login = await client.post(
         "/api/v1/auth/login", json={"email": user.email, "password": TEST_PASSWORD}
     )
@@ -99,9 +97,7 @@ async def test_replaying_a_rotated_refresh_token_revokes_every_session(
     assert replay.json()["error"]["code"] == "token_reused"
 
     live = await db.scalars(
-        select(UserSession).where(
-            UserSession.user_id == user.id, UserSession.revoked_at.is_(None)
-        )
+        select(UserSession).where(UserSession.user_id == user.id, UserSession.revoked_at.is_(None))
     )
     assert list(live) == []
 
@@ -112,26 +108,22 @@ async def test_logout_revokes_the_session(client, db, user, auth_headers):
     )
     assert response.status_code == 200
     live = await db.scalars(
-        select(UserSession).where(
-            UserSession.user_id == user.id, UserSession.revoked_at.is_(None)
-        )
+        select(UserSession).where(UserSession.user_id == user.id, UserSession.revoked_at.is_(None))
     )
     assert list(live) == []
 
 
 async def test_forgot_password_never_reveals_whether_the_account_exists(client, user):
     known = await client.post("/api/v1/auth/forgot-password", json={"email": user.email})
-    unknown = await client.post(
-        "/api/v1/auth/forgot-password", json={"email": "ghost@example.com"}
-    )
+    unknown = await client.post("/api/v1/auth/forgot-password", json={"email": "ghost@example.com"})
     assert known.status_code == unknown.status_code == 200
     assert known.json() == unknown.json()
 
 
 async def test_password_reset_flow_end_to_end(client, db, user):
-    from app.core.security import fingerprint, generate_opaque_token
     from datetime import UTC, datetime, timedelta
 
+    from app.core.security import fingerprint, generate_opaque_token
     from app.models.user import VerificationToken
     from app.services.auth_service import PURPOSE_PASSWORD_RESET
 

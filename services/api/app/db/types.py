@@ -10,8 +10,9 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from sqlalchemy import JSON, CHAR, TypeDecorator
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PgUUID
+from sqlalchemy import CHAR, JSON, TypeDecorator
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.engine import Dialect
 
 
@@ -41,3 +42,27 @@ class GUID(TypeDecorator):
 
 #: JSON document column — JSONB on PostgreSQL, JSON elsewhere.
 JSONDict = JSON().with_variant(JSONB(), "postgresql")
+
+
+def normalize_datetime_param(session: Any, value: Any) -> Any:
+    """Make a timezone-aware datetime safe to compare against stored values.
+
+    PostgreSQL stores ``timestamptz`` and compares aware values correctly.
+    SQLite stores naive UTC strings, so an aware bind parameter would render
+    with an offset suffix and compare as text against values without one.
+    """
+    import datetime as _dt
+
+    if not isinstance(value, _dt.datetime) or value.tzinfo is None:
+        return value
+    value = value.astimezone(_dt.UTC)
+    bind = getattr(session, "bind", None) or getattr(
+        getattr(session, "get_bind", lambda: None)(), "engine", None
+    )
+    dialect = getattr(getattr(bind, "dialect", None), "name", None)
+    if dialect is None:
+        try:
+            dialect = session.get_bind().dialect.name
+        except Exception:
+            dialect = None
+    return value.replace(tzinfo=None) if dialect == "sqlite" else value

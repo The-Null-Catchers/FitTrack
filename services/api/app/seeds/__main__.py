@@ -30,9 +30,7 @@ async def main() -> None:
     parser.add_argument(
         "--demo", action="store_true", help="also create the demo account and history"
     )
-    parser.add_argument(
-        "--weeks", type=int, default=12, help="weeks of demo training history"
-    )
+    parser.add_argument("--weeks", type=int, default=12, help="weeks of demo training history")
     args = parser.parse_args()
 
     configure_logging()

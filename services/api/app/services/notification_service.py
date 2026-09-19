@@ -6,7 +6,8 @@ import uuid
 from datetime import UTC, datetime, time
 from typing import Any
 
-from sqlalchemy import func, select, update as sa_update
+from sqlalchemy import func, select
+from sqlalchemy import update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import NotFoundError, PermissionError_
@@ -121,9 +122,7 @@ async def create(
     return notification
 
 
-async def _deliver_push(
-    db: AsyncSession, user_id: uuid.UUID, notification: Notification
-) -> None:
+async def _deliver_push(db: AsyncSession, user_id: uuid.UUID, notification: Notification) -> None:
     tokens = await db.scalars(
         select(UserSession.push_token).where(
             UserSession.user_id == user_id,
@@ -214,9 +213,7 @@ async def register_push_token(
     await db.commit()
 
 
-async def notify_personal_records(
-    db: AsyncSession, user: User, records: list[Any]
-) -> None:
+async def notify_personal_records(db: AsyncSession, user: User, records: list[Any]) -> None:
     """One summary notification per workout rather than one per record."""
     if not records:
         return
