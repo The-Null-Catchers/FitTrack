@@ -202,6 +202,7 @@ fittrack/
 │   ├── docker/           production compose overlay
 │   └── nginx/            TLS termination, rate limiting, routing
 ├── docs/                 architecture and API notes
+├── scripts/              acceptance walk-through against a running stack
 ├── .github/workflows/    CI and release pipelines
 └── docker-compose.yml
 ```
@@ -344,6 +345,26 @@ Error messages are written for end users. No screen in this product shows
 
 ## Tests
 
+### The acceptance walk
+
+The fastest way to see the whole thing work:
+
+```bash
+docker compose up -d
+docker compose run --rm api seed --demo
+./scripts/acceptance.sh
+```
+
+75 checks covering the path a reviewer would take by hand — register, onboard,
+browse the library, clone a plan, start a workout, log sets, close and resume
+it, finish it, see the records, log weight and meals, upload a private photo,
+set a goal, ask FitCoach a training question *and* a medical one, generate and
+save a plan, push a batch of offline changes and replay it, and confirm the
+admin surface never exposes private content. It runs in CI on every pull
+request.
+
+### Per app
+
 ```bash
 # Backend — 167 tests, no services required
 cd services/api && pytest -q
@@ -370,8 +391,9 @@ English/Arabic parity and the set-logging row.
 
 **On every pull request** — backend lint, format and tests; migrations applied
 against a real PostgreSQL with `alembic check` for drift; admin format,
-typecheck, lint and build; Flutter format, analyze and test; both container
-images built and the API image smoke-tested; compose files validated.
+typecheck, lint and build; Flutter analyze and test; both container images built
+and the API image smoke-tested; compose files validated; and the full stack
+brought up, seeded and walked through the 75-check acceptance script.
 
 **On `main` and tags** — container images published to GHCR; a release APK and
 AAB built and uploaded. Signing runs only when the keystore secrets exist, and
