@@ -1,0 +1,248 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A new push supersedes an in-flight run on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "22"
+  FLUTTER_VERSION: "3.27.4"
+
+jobs:
+  api:
+    name: API — lint, format, tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: services/api/pyproject.toml
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check app tests
+
+      - name: Format
+        run: ruff format --check app tests
+
+      - name: Tests
+        # The suite runs on in-memory SQLite, so no services are needed.
+        env:
+          ENVIRONMENT: test
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+          RATE_LIMIT_ENABLED: "false"
+          JWT_SECRET: ci-secret-not-used-in-any-real-environment
+        run: pytest -q --cov=app --cov-report=term-missing --cov-report=xml
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-coverage
+          path: services/api/coverage.xml
+          if-no-files-found: ignore
+
+  migrations:
+    name: API — migrations against PostgreSQL
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/api
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fittrack
+          POSTGRES_PASSWORD: fittrack
+          POSTGRES_DB: fittrack
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U fittrack"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: services/api/pyproject.toml
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Apply migrations
+        env:
+          DATABASE_URL: "postgresql+asyncpg://fittrack:fittrack@localhost:5432/fittrack"
+        run: alembic upgrade head
+
+      - name: Check the schema matches the models
+        # An empty autogenerate diff proves no migration was forgotten.
+        env:
+          DATABASE_URL: "postgresql+asyncpg://fittrack:fittrack@localhost:5432/fittrack"
+        run: |
+          alembic check
+
+      - name: Seed reference data
+        env:
+          DATABASE_URL: "postgresql+asyncpg://fittrack:fittrack@localhost:5432/fittrack"
+        run: python -m app.seeds
+
+  admin:
+    name: Admin — lint, typecheck, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/admin
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: apps/admin/package-lock.json
+
+      - name: Install
+        run: npm ci || npm install
+
+      - name: Format
+        run: npm run format:check
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+
+  mobile:
+    name: Mobile — analyze and test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Generate the platform folders
+        run: ./tool/bootstrap_platforms.sh
+
+      - name: Install
+        run: flutter pub get
+
+      - name: Format
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        # Lints are advisory here; only genuine errors fail the build.
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Tests
+        run: flutter test --coverage
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-coverage
+          path: apps/mobile/coverage/lcov.info
+          if-no-files-found: ignore
+
+  docker:
+    name: Docker — build images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/api
+          push: false
+          load: true
+          tags: fittrack-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build the admin image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/admin
+          push: false
+          load: true
+          tags: fittrack-admin:ci
+          build-args: NEXT_PUBLIC_API_URL=http://localhost:8000
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke-test the API image
+        run: |
+          # No database is attached, so /health (liveness) must answer while
+          # /ready (readiness) reports the missing dependency.
+          docker run -d --name fittrack-api-ci \
+            -e ENVIRONMENT=test \
+            -e DATABASE_URL=sqlite+aiosqlite:///./var/ci.db \
+            -e JWT_SECRET=ci-secret \
+            -p 8000:8000 \
+            fittrack-api:ci \
+            uvicorn app.main:app --host 0.0.0.0 --port 8000
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health > /dev/null; then
+              echo "API is up."
+              curl -fsS http://localhost:8000/health
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not become healthy." >&2
+          docker logs fittrack-api-ci
+          exit 1
+
+  compose:
+    name: Docker Compose — config is valid
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate the development stack
+        run: docker compose config --quiet
+      - name: Validate the production overlay
+        env:
+          DATABASE_URL: "postgresql+asyncpg://user:pass@db:5432/fittrack"
+          JWT_SECRET: validation-only
+          CORS_ORIGINS: https://example.com
+        run: >-
+          docker compose
+          -f docker-compose.yml
+          -f infra/docker/docker-compose.prod.yml
+          config --quiet
