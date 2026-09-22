@@ -59,8 +59,7 @@ class FitLineChart extends StatelessWidget {
     final double spanDays =
         maxDate.difference(minDate).inDays.toDouble().clamp(1, double.infinity);
 
-    double toX(DateTime date) =>
-        date.difference(minDate).inDays.toDouble();
+    double toX(DateTime date) => date.difference(minDate).inDays.toDouble();
 
     final List<double> allValues = withData
         .expand((ChartSeries item) => item.points.map((SeriesPoint p) => p.y))
@@ -92,8 +91,9 @@ class FitLineChart extends StatelessWidget {
 
       bars.add(
         LineChartBarData(
-          spots:
-              item.points.map((SeriesPoint p) => FlSpot(toX(p.x), p.y)).toList(),
+          spots: item.points
+              .map((SeriesPoint p) => FlSpot(toX(p.x), p.y))
+              .toList(),
           isCurved: item.trend.isEmpty,
           curveSmoothness: 0.2,
           color: color,
@@ -143,8 +143,10 @@ class FitLineChart extends StatelessWidget {
           ),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,

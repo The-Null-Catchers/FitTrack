@@ -8,7 +8,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/choice_chips.dart';
 import '../../../core/widgets/fit_card.dart';
-import '../../../core/widgets/state_views.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/domain/auth_models.dart';
 import '../../programs/application/program_providers.dart';
@@ -66,8 +65,7 @@ class _PlanGeneratorScreenState extends ConsumerState<PlanGeneratorScreen> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
-    final PlanGeneratorState state =
-        ref.watch(planGeneratorProvider(_initial));
+    final PlanGeneratorState state = ref.watch(planGeneratorProvider(_initial));
     final PlanGeneratorController controller =
         ref.read(planGeneratorProvider(_initial).notifier);
     final PlanRequest request = state.request;
@@ -77,7 +75,8 @@ class _PlanGeneratorScreenState extends ConsumerState<PlanGeneratorScreen> {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.screenPadding),
         children: <Widget>[
-          Text(l10n.t('homeGoals'), style: Theme.of(context).textTheme.titleSmall),
+          Text(l10n.t('homeGoals'),
+              style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: AppSpacing.md),
           SingleChoiceChips<String>(
             values: _goals,
@@ -92,7 +91,6 @@ class _PlanGeneratorScreenState extends ConsumerState<PlanGeneratorScreen> {
             onSelected: (String value) =>
                 controller.updateRequest(request.copyWith(goal: value)),
           ),
-
           const SizedBox(height: AppSpacing.xl),
           Text(
             l10n.t('exercisesDifficulty'),
@@ -110,7 +108,6 @@ class _PlanGeneratorScreenState extends ConsumerState<PlanGeneratorScreen> {
             onSelected: (String value) =>
                 controller.updateRequest(request.copyWith(experience: value)),
           ),
-
           const SizedBox(height: AppSpacing.xl),
           Text(
             l10n.t('fieldTrainingDays'),
@@ -125,7 +122,6 @@ class _PlanGeneratorScreenState extends ConsumerState<PlanGeneratorScreen> {
             onChanged: (double value) => controller
                 .updateRequest(request.copyWith(daysPerWeek: value.round())),
           ),
-
           Text(
             l10n.t('fieldSessionLength'),
             style: Theme.of(context).textTheme.titleSmall,
@@ -139,7 +135,6 @@ class _PlanGeneratorScreenState extends ConsumerState<PlanGeneratorScreen> {
             onChanged: (double value) => controller
                 .updateRequest(request.copyWith(sessionMinutes: value.round())),
           ),
-
           const SizedBox(height: AppSpacing.lg),
           Text(
             l10n.t('onboardingEquipmentTitle'),
@@ -151,13 +146,13 @@ class _PlanGeneratorScreenState extends ConsumerState<PlanGeneratorScreen> {
             selected: request.equipment.toSet(),
             labelBuilder: (String value) => value
                 .split('_')
-                .map((String part) =>
-                    part.isEmpty ? part : part[0].toUpperCase() + part.substring(1))
+                .map((String part) => part.isEmpty
+                    ? part
+                    : part[0].toUpperCase() + part.substring(1))
                 .join(' '),
             onChanged: (Set<String> next) => controller
                 .updateRequest(request.copyWith(equipment: next.toList())),
           ),
-
           const SizedBox(height: AppSpacing.xxl),
           FilledButton.icon(
             onPressed: state.isGenerating ? null : controller.generate,
@@ -174,7 +169,6 @@ class _PlanGeneratorScreenState extends ConsumerState<PlanGeneratorScreen> {
                   : l10n.t('coachRegenerate'),
             ),
           ),
-
           if (state.errorMessage != null)
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.lg),
@@ -186,7 +180,6 @@ class _PlanGeneratorScreenState extends ConsumerState<PlanGeneratorScreen> {
                     ?.copyWith(color: context.fitColors.danger),
               ),
             ),
-
           if (state.plan != null) ...<Widget>[
             SectionHeader(
               title: l10n.t('coachPlanPreview'),

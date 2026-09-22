@@ -65,7 +65,6 @@ class WorkoutSummaryScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xxl),
-
           if (state.wasQueuedOffline)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -82,7 +81,6 @@ class WorkoutSummaryScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
           FitCard(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -107,7 +105,6 @@ class WorkoutSummaryScreen extends ConsumerWidget {
               ],
             ),
           ),
-
           if (session.personalRecords.isNotEmpty) ...<Widget>[
             SectionHeader(
               title: session.personalRecords.length == 1
@@ -167,7 +164,6 @@ class WorkoutSummaryScreen extends ConsumerWidget {
               ),
             ),
           ],
-
           const SizedBox(height: AppSpacing.xxl),
           FilledButton(
             onPressed: () {

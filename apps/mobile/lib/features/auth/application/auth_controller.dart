@@ -35,7 +35,8 @@ class AuthState {
   final String? errorMessage;
 
   bool get isSignedIn =>
-      status == AuthStatus.authenticated || status == AuthStatus.needsOnboarding;
+      status == AuthStatus.authenticated ||
+      status == AuthStatus.needsOnboarding;
 
   AuthState copyWith({
     AuthStatus? status,
@@ -180,8 +181,9 @@ class AuthController extends StateNotifier<AuthState> {
     await database.clear();
   }
 
-  AuthStatus _statusFor(AuthUser user) =>
-      user.onboardingCompleted ? AuthStatus.authenticated : AuthStatus.needsOnboarding;
+  AuthStatus _statusFor(AuthUser user) => user.onboardingCompleted
+      ? AuthStatus.authenticated
+      : AuthStatus.needsOnboarding;
 }
 
 final StateNotifierProvider<AuthController, AuthState> authControllerProvider =
@@ -194,6 +196,7 @@ final Provider<AuthUser?> currentUserProvider = Provider<AuthUser?>(
   (Ref ref) => ref.watch(authControllerProvider).user,
 );
 
-final Provider<FitnessProfile?> currentProfileProvider = Provider<FitnessProfile?>(
+final Provider<FitnessProfile?> currentProfileProvider =
+    Provider<FitnessProfile?>(
   (Ref ref) => ref.watch(currentUserProvider)?.profile,
 );

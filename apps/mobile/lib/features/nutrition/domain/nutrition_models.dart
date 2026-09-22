@@ -90,8 +90,9 @@ class Food {
         'fat_per_100g': fatPer100g,
         'fiber_per_100g': fiberPer100g,
         'default_serving_grams': defaultServingGrams,
-        'serving_options':
-            servingOptions.map((ServingOption option) => option.toJson()).toList(),
+        'serving_options': servingOptions
+            .map((ServingOption option) => option.toJson())
+            .toList(),
         'is_custom': isCustom,
         'is_verified': isVerified,
         'is_favorite': isFavorite,
@@ -218,7 +219,8 @@ class Meal {
 }
 
 class MacroProgress {
-  const MacroProgress({required this.consumed, this.target, this.remaining, this.percent});
+  const MacroProgress(
+      {required this.consumed, this.target, this.remaining, this.percent});
 
   final double consumed;
   final double? target;
@@ -293,8 +295,8 @@ class NutritionDay {
           Map<String, dynamic>.from(json['water_ml'] as Map<dynamic, dynamic>),
         ),
         meals: ((json['meals'] as List<dynamic>?) ?? const <dynamic>[])
-            .map((dynamic item) =>
-                Meal.fromJson(Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
+            .map((dynamic item) => Meal.fromJson(
+                Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
             .toList(),
       );
 

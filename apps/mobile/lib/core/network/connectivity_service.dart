@@ -13,12 +13,12 @@ class ConnectivityService {
 
   final Connectivity _connectivity;
 
-  Stream<bool> get onStatusChange => _connectivity.onConnectivityChanged
-      .map(_isOnline)
-      .distinct();
+  Stream<bool> get onStatusChange =>
+      _connectivity.onConnectivityChanged.map(_isOnline).distinct();
 
-  Future<bool> get isOnline async => _isOnline(await _connectivity.checkConnectivity());
+  Future<bool> get isOnline async =>
+      _isOnline(await _connectivity.checkConnectivity());
 
-  static bool _isOnline(List<ConnectivityResult> results) =>
-      results.any((ConnectivityResult result) => result != ConnectivityResult.none);
+  static bool _isOnline(List<ConnectivityResult> results) => results
+      .any((ConnectivityResult result) => result != ConnectivityResult.none);
 }

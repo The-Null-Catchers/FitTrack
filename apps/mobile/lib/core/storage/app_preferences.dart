@@ -54,9 +54,11 @@ class AppPreferences {
 
   bool get hasSeenIntro => _prefs.getBool(_onboardedKey) ?? false;
 
-  Future<void> setHasSeenIntro(bool value) => _prefs.setBool(_onboardedKey, value);
+  Future<void> setHasSeenIntro(bool value) =>
+      _prefs.setBool(_onboardedKey, value);
 
   bool get restTimerSound => _prefs.getBool(_restSoundKey) ?? true;
 
-  Future<void> setRestTimerSound(bool value) => _prefs.setBool(_restSoundKey, value);
+  Future<void> setRestTimerSound(bool value) =>
+      _prefs.setBool(_restSoundKey, value);
 }

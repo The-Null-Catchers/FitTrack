@@ -101,7 +101,8 @@ class SyncController extends StateNotifier<SyncState> {
     state = state.copyWith(status: SyncStatus.syncing, clearError: true);
 
     try {
-      final Map<String, dynamic> body = await _client.post<Map<String, dynamic>>(
+      final Map<String, dynamic> body =
+          await _client.post<Map<String, dynamic>>(
         '/api/v1/sync/push',
         data: <String, dynamic>{
           'operations': pending
@@ -110,8 +111,8 @@ class SyncController extends StateNotifier<SyncState> {
         },
       );
 
-      for (final dynamic raw in (body['results'] as List<dynamic>? ??
-          const <dynamic>[])) {
+      for (final dynamic raw
+          in (body['results'] as List<dynamic>? ?? const <dynamic>[])) {
         final Map<String, dynamic> result =
             Map<String, dynamic>.from(raw as Map<dynamic, dynamic>);
         final String clientUuid = result['client_uuid'] as String;

@@ -155,7 +155,8 @@ class _FoodList extends StatelessWidget {
               AppSpacing.screenPadding,
               AppSpacing.sm,
             ),
-            child: Text(header!, style: Theme.of(context).textTheme.labelMedium),
+            child:
+                Text(header!, style: Theme.of(context).textTheme.labelMedium),
           );
         }
         final Food food = foods[header == null ? index : index - 1];

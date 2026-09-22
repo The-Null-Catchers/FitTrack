@@ -13,7 +13,6 @@ import '../../../core/widgets/fit_card.dart';
 import '../../../core/widgets/fit_line_chart.dart';
 import '../../../core/widgets/progress_ring.dart';
 import '../../../core/widgets/state_views.dart';
-import '../../auth/application/auth_controller.dart';
 import '../../goals/domain/goal.dart';
 import '../../programs/application/program_providers.dart';
 import '../../programs/domain/program.dart';
@@ -61,7 +60,9 @@ class _DashboardBody extends ConsumerWidget {
 
   String _greeting(BuildContext context) {
     final int hour = DateTime.now().hour;
-    final Map<String, Object?> name = <String, Object?>{'name': data.greetingName};
+    final Map<String, Object?> name = <String, Object?>{
+      'name': data.greetingName
+    };
     if (hour < 12) return context.l10n.t('homeGreetingMorning', name);
     if (hour < 18) return context.l10n.t('homeGreetingAfternoon', name);
     return context.l10n.t('homeGreetingEvening', name);
@@ -90,7 +91,8 @@ class _DashboardBody extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(_greeting(context), style: theme.textTheme.headlineSmall),
+                    Text(_greeting(context),
+                        style: theme.textTheme.headlineSmall),
                     Text(
                       Formatters.fullDate(data.date, locale),
                       style: theme.textTheme.bodySmall,
@@ -171,7 +173,8 @@ class _DashboardBody extends ConsumerWidget {
                 ProgressRing(
                   value: data.waterMl.fraction,
                   label: l10n.t('nutritionWater'),
-                  centerText: '${(data.waterMl.consumed / 1000).toStringAsFixed(1)}L',
+                  centerText:
+                      '${(data.waterMl.consumed / 1000).toStringAsFixed(1)}L',
                   color: context.fitColors.info,
                 ),
               ],
@@ -198,8 +201,9 @@ class _DashboardBody extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: List<Widget>.generate(7, (int index) {
-                    final bool trained = index < data.weeklyWorkouts.days.length &&
-                        data.weeklyWorkouts.days[index];
+                    final bool trained =
+                        index < data.weeklyWorkouts.days.length &&
+                            data.weeklyWorkouts.days[index];
                     final DateTime day = DateTime.now()
                         .subtract(Duration(days: DateTime.now().weekday - 1))
                         .add(Duration(days: index));
@@ -236,7 +240,8 @@ class _DashboardBody extends ConsumerWidget {
           ),
         ),
 
-        if (data.weightTrend != null && data.weightTrend!.points.length > 1) ...<Widget>[
+        if (data.weightTrend != null &&
+            data.weightTrend!.points.length > 1) ...<Widget>[
           SectionHeader(
             title: l10n.t('homeWeightTrend'),
             subtitle: data.weightChange30dKg == null
@@ -249,8 +254,8 @@ class _DashboardBody extends ConsumerWidget {
             ),
           ),
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding),
             child: FitCard(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.sm,
@@ -438,7 +443,8 @@ class _TodayCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(l10n.t('homeRestDay'), style: theme.textTheme.titleMedium),
+                  Text(l10n.t('homeRestDay'),
+                      style: theme.textTheme.titleMedium),
                   Text(l10n.t('homeRestDayBody'),
                       style: theme.textTheme.bodySmall),
                 ],
@@ -513,8 +519,10 @@ class _QuickAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final double width =
-        (MediaQuery.sizeOf(context).width - AppSpacing.screenPadding * 2 - AppSpacing.md * 2) / 3;
+    final double width = (MediaQuery.sizeOf(context).width -
+            AppSpacing.screenPadding * 2 -
+            AppSpacing.md * 2) /
+        3;
 
     return SizedBox(
       width: width,

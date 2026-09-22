@@ -28,7 +28,8 @@ class PrivacyScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(l10n.t('profilePrivacy'), style: theme.textTheme.titleMedium),
+                Text(l10n.t('profilePrivacy'),
+                    style: theme.textTheme.titleMedium),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   l10n.t('progressPhotosPrivate'),
@@ -44,7 +45,6 @@ class PrivacyScreen extends ConsumerWidget {
               ],
             ),
           ),
-
           const SizedBox(height: AppSpacing.lg),
           FitCard(
             onTap: () => _openUrl('${Env.appPublicUrl}/privacy'),
@@ -69,7 +69,6 @@ class PrivacyScreen extends ConsumerWidget {
               ],
             ),
           ),
-
           const SizedBox(height: AppSpacing.lg),
           FitCard(
             onTap: () => _openUrl('${Env.apiV1}/profile/export'),
@@ -92,7 +91,6 @@ class PrivacyScreen extends ConsumerWidget {
               ],
             ),
           ),
-
           const SizedBox(height: AppSpacing.xxl),
           FitCard(
             borderColor: context.fitColors.danger.withValues(alpha: 0.5),

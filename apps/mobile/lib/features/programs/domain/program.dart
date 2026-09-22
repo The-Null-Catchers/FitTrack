@@ -44,7 +44,8 @@ class DayExercise {
     if (targetRepsMin == null && targetRepsMax == null) {
       return '$targetSets sets';
     }
-    if (targetRepsMin != null && targetRepsMax != null &&
+    if (targetRepsMin != null &&
+        targetRepsMax != null &&
         targetRepsMin != targetRepsMax) {
       return '$targetSets × $targetRepsMin-$targetRepsMax';
     }

@@ -69,7 +69,8 @@ class AuthRepository {
     }
   }
 
-  Future<void> requestPasswordReset(String email) => _client.post<Map<String, dynamic>>(
+  Future<void> requestPasswordReset(String email) =>
+      _client.post<Map<String, dynamic>>(
         '/api/v1/auth/forgot-password',
         data: <String, dynamic>{'email': email.trim()},
       );
@@ -111,7 +112,8 @@ class AuthRepository {
     return AuthUser.fromJson(body);
   }
 
-  Future<FitnessProfile> updateFitnessProfile(Map<String, dynamic> changes) async {
+  Future<FitnessProfile> updateFitnessProfile(
+      Map<String, dynamic> changes) async {
     final Map<String, dynamic> body = await _client.patch<Map<String, dynamic>>(
       '/api/v1/profile/fitness',
       data: changes,
@@ -119,7 +121,8 @@ class AuthRepository {
     return FitnessProfile.fromJson(body);
   }
 
-  Future<FitnessProfile> updateNutritionTargets(Map<String, dynamic> targets) async {
+  Future<FitnessProfile> updateNutritionTargets(
+      Map<String, dynamic> targets) async {
     final Map<String, dynamic> body = await _client.put<Map<String, dynamic>>(
       '/api/v1/profile/nutrition-targets',
       data: targets,
@@ -127,8 +130,8 @@ class AuthRepository {
     return FitnessProfile.fromJson(body);
   }
 
-  Future<Map<String, dynamic>> estimateNutritionTargets() =>
-      _client.get<Map<String, dynamic>>('/api/v1/profile/nutrition-targets/estimate');
+  Future<Map<String, dynamic>> estimateNutritionTargets() => _client
+      .get<Map<String, dynamic>>('/api/v1/profile/nutrition-targets/estimate');
 
   Future<List<Map<String, dynamic>>> sessions() async {
     final List<dynamic> body =

@@ -68,8 +68,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Future<void> _finish() async {
-    final bool success =
-        await ref.read(authControllerProvider.notifier).completeOnboarding(_draft);
+    final bool success = await ref
+        .read(authControllerProvider.notifier)
+        .completeOnboarding(_draft);
     if (success && mounted) {
       context.goNamed(Routes.home);
     }
@@ -133,7 +134,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: <Widget>[
                   _GoalStep(draft: _draft, onChanged: _update),
-                  _BodyStep(draft: _draft, onChanged: _update, imperial: imperial),
+                  _BodyStep(
+                      draft: _draft, onChanged: _update, imperial: imperial),
                   _TrainingStep(draft: _draft, onChanged: _update),
                   _EquipmentStep(draft: _draft, onChanged: _update),
                   _ReviewStep(draft: _draft, imperial: imperial),
@@ -259,7 +261,8 @@ class _GoalStep extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: FitCard(
             onTap: () => onChanged(draft.copyWith(primaryGoal: goal)),
-            borderColor: selected ? Theme.of(context).colorScheme.primary : null,
+            borderColor:
+                selected ? Theme.of(context).colorScheme.primary : null,
             color: selected
                 ? Theme.of(context).colorScheme.primaryContainer
                 : null,
@@ -314,7 +317,8 @@ class _BodyStep extends StatelessWidget {
       children: <Widget>[
         SegmentedButton<String>(
           segments: <ButtonSegment<String>>[
-            ButtonSegment<String>(value: 'metric', label: Text(l10n.t('unitsMetric'))),
+            ButtonSegment<String>(
+                value: 'metric', label: Text(l10n.t('unitsMetric'))),
             ButtonSegment<String>(
               value: 'imperial',
               label: Text(l10n.t('unitsImperial')),
@@ -331,9 +335,7 @@ class _BodyStep extends StatelessWidget {
           suffix: imperial ? l10n.t('commonIn') : l10n.t('commonCm'),
           initial: draft.heightCm == null
               ? null
-              : (imperial
-                  ? Units.cmToInch(draft.heightCm!)
-                  : draft.heightCm!),
+              : (imperial ? Units.cmToInch(draft.heightCm!) : draft.heightCm!),
           onChanged: (double? value) => onChanged(
             draft.copyWith(
               heightCm: value == null
@@ -353,8 +355,9 @@ class _BodyStep extends StatelessWidget {
                   : draft.currentWeightKg!),
           onChanged: (double? value) => onChanged(
             draft.copyWith(
-              currentWeightKg:
-                  value == null ? null : (imperial ? Units.lbToKg(value) : value),
+              currentWeightKg: value == null
+                  ? null
+                  : (imperial ? Units.lbToKg(value) : value),
             ),
           ),
         ),
@@ -369,13 +372,15 @@ class _BodyStep extends StatelessWidget {
                   : draft.targetWeightKg!),
           onChanged: (double? value) => onChanged(
             draft.copyWith(
-              targetWeightKg:
-                  value == null ? null : (imperial ? Units.lbToKg(value) : value),
+              targetWeightKg: value == null
+                  ? null
+                  : (imperial ? Units.lbToKg(value) : value),
             ),
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
-        Text(l10n.t('fieldGender'), style: Theme.of(context).textTheme.titleSmall),
+        Text(l10n.t('fieldGender'),
+            style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: AppSpacing.md),
         SingleChoiceChips<String>(
           values: const <String>['male', 'female', 'other', 'undisclosed'],
@@ -386,7 +391,8 @@ class _BodyStep extends StatelessWidget {
             'other' => l10n.t('genderOther'),
             _ => l10n.t('genderUndisclosed'),
           },
-          onSelected: (String value) => onChanged(draft.copyWith(gender: value)),
+          onSelected: (String value) =>
+              onChanged(draft.copyWith(gender: value)),
         ),
       ],
     );

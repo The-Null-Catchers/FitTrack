@@ -69,20 +69,20 @@ class ProgressScreen extends ConsumerWidget {
                 children: chartRanges
                     .map(
                       (String value) => Padding(
-                        padding:
-                            const EdgeInsetsDirectional.only(end: AppSpacing.sm),
+                        padding: const EdgeInsetsDirectional.only(
+                            end: AppSpacing.sm),
                         child: ChoiceChip(
                           label: Text(_rangeLabel(context, value)),
                           selected: range == value,
-                          onSelected: (_) =>
-                              ref.read(chartRangeProvider.notifier).state = value,
+                          onSelected: (_) => ref
+                              .read(chartRangeProvider.notifier)
+                              .state = value,
                         ),
                       ),
                     )
                     .toList(),
               ),
             ),
-
             SectionHeader(title: l10n.t('progressOverview')),
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -139,14 +139,15 @@ class ProgressScreen extends ConsumerWidget {
                         const SizedBox(height: AppSpacing.lg),
                         ...data.volumeByMuscleGroup.take(5).map(
                               (MuscleGroupVolume group) => Padding(
-                                padding:
-                                    const EdgeInsets.only(bottom: AppSpacing.md),
+                                padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.md),
                                 child: ProgressBarRow(
                                   label: group.muscleGroup
                                       .replaceAll('_', ' ')
                                       .toUpperCase(),
                                   value: group.percent / 100,
-                                  trailing: '${group.percent.toStringAsFixed(0)}%',
+                                  trailing:
+                                      '${group.percent.toStringAsFixed(0)}%',
                                 ),
                               ),
                             ),
@@ -156,7 +157,6 @@ class ProgressScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
             SectionHeader(
               title: l10n.t('progressWeight'),
               action: TextButton(
@@ -176,7 +176,6 @@ class ProgressScreen extends ConsumerWidget {
                     : value.toStringAsFixed(0),
               ),
             ),
-
             SectionHeader(title: l10n.t('workoutTotalVolume')),
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -187,7 +186,6 @@ class ProgressScreen extends ConsumerWidget {
                 onRetry: () => ref.invalidate(volumeChartProvider),
               ),
             ),
-
             SectionHeader(title: l10n.t('progressTitle')),
             Padding(
               padding: const EdgeInsets.symmetric(

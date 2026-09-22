@@ -13,7 +13,8 @@ class AppToast {
   static void success(BuildContext context, String message) =>
       _show(context, message, icon: Icons.check_circle_outline_rounded);
 
-  static void error(BuildContext context, String message, {VoidCallback? onRetry}) =>
+  static void error(BuildContext context, String message,
+          {VoidCallback? onRetry}) =>
       _show(
         context,
         message,

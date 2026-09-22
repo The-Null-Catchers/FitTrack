@@ -92,8 +92,8 @@ class WorkoutRepository {
   /// What the user did with this exercise last time, for the "Previous" column.
   Future<PreviousPerformance?> previousPerformance(String exerciseId) async {
     try {
-      final Map<String, dynamic>? body = await _client
-          .get<Map<String, dynamic>?>(
+      final Map<String, dynamic>? body =
+          await _client.get<Map<String, dynamic>?>(
               '/api/v1/workout-sessions/exercises/$exerciseId/previous');
       return body == null ? null : PreviousPerformance.fromJson(body);
     } on ApiException {
@@ -124,7 +124,7 @@ class WorkoutRepository {
       if (page == 1 && startDate == null && exerciseId == null) {
         await _cache.write(CacheDao.workoutHistoryKey, body);
       }
-      return PagedResult<WorkoutSession>.fromJson<WorkoutSession>(
+      return PagedResult.fromJson<WorkoutSession>(
         body,
         WorkoutSession.fromJson,
       );
@@ -133,7 +133,7 @@ class WorkoutRepository {
         final CachedDocument? cached =
             await _cache.read(CacheDao.workoutHistoryKey);
         if (cached != null) {
-          return PagedResult<WorkoutSession>.fromJson<WorkoutSession>(
+          return PagedResult.fromJson<WorkoutSession>(
             cached.asMap,
             WorkoutSession.fromJson,
           );
@@ -144,8 +144,8 @@ class WorkoutRepository {
   }
 
   Future<WorkoutSession> sessionDetail(String id) async {
-    final Map<String, dynamic> body = await _client
-        .get<Map<String, dynamic>>('/api/v1/workout-sessions/$id');
+    final Map<String, dynamic> body =
+        await _client.get<Map<String, dynamic>>('/api/v1/workout-sessions/$id');
     return WorkoutSession.fromJson(body);
   }
 
@@ -160,7 +160,8 @@ class WorkoutRepository {
     await _outbox.discard(session.localId);
     if (session.id != null) {
       try {
-        await _client.post<void>('/api/v1/workout-sessions/${session.id}/discard');
+        await _client
+            .post<void>('/api/v1/workout-sessions/${session.id}/discard');
       } on ApiException {
         // The local session is gone either way; a stale in-progress row on the
         // server is closed by the worker's stale-session job.

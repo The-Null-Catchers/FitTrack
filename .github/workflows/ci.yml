@@ -162,9 +162,6 @@ jobs:
         run: flutter pub get
 
       - name: Format
-        # Advisory: reports what `dart format` would change without failing the
-        # build. Run `dart format lib test` locally and commit the result.
-        continue-on-error: true
         run: dart format --output=none --set-exit-if-changed lib test
 
       - name: Analyze

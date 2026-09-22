@@ -164,7 +164,9 @@ class ProgressBarRow extends StatelessWidget {
               Text(
                 trailing,
                 style: theme.textTheme.labelMedium?.copyWith(
-                  fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+                  fontFeatures: const <FontFeature>[
+                    FontFeature.tabularFigures()
+                  ],
                 ),
               ),
             ],

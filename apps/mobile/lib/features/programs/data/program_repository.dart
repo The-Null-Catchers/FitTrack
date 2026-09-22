@@ -13,8 +13,8 @@ class ProgramRepository {
 
   Future<Program?> active() async {
     try {
-      final Map<String, dynamic>? body = await _client
-          .get<Map<String, dynamic>?>('/api/v1/programs/active');
+      final Map<String, dynamic>? body =
+          await _client.get<Map<String, dynamic>?>('/api/v1/programs/active');
       if (body == null) {
         await _cache.delete(CacheDao.activeProgramKey);
         return null;
@@ -23,7 +23,8 @@ class ProgramRepository {
       return Program.fromJson(body);
     } on ApiException catch (error) {
       if (!error.isConnectivity) rethrow;
-      final CachedDocument? cached = await _cache.read(CacheDao.activeProgramKey);
+      final CachedDocument? cached =
+          await _cache.read(CacheDao.activeProgramKey);
       return cached == null ? null : Program.fromJson(cached.asMap);
     }
   }
@@ -41,12 +42,12 @@ class ProgramRepository {
       if (page == 1 && status == null) {
         await _cache.write(CacheDao.programsKey, body);
       }
-      return PagedResult<Program>.fromJson<Program>(body, Program.fromJson);
+      return PagedResult.fromJson<Program>(body, Program.fromJson);
     } on ApiException catch (error) {
       if (page == 1 && error.isConnectivity) {
         final CachedDocument? cached = await _cache.read(CacheDao.programsKey);
         if (cached != null) {
-          return PagedResult<Program>.fromJson<Program>(
+          return PagedResult.fromJson<Program>(
             cached.asMap,
             Program.fromJson,
           );
@@ -111,8 +112,8 @@ class ProgramRepository {
   }
 
   Future<Program> archive(String id) async {
-    final Map<String, dynamic> body =
-        await _client.post<Map<String, dynamic>>('/api/v1/programs/$id/archive');
+    final Map<String, dynamic> body = await _client
+        .post<Map<String, dynamic>>('/api/v1/programs/$id/archive');
     await _invalidate();
     return Program.fromJson(body);
   }

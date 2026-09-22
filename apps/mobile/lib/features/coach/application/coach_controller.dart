@@ -74,8 +74,11 @@ class CoachController extends StateNotifier<CoachState> {
     );
 
     try {
-      final ({String conversationId, CoachMessage message, String disclaimer})
-          result = await _repository.chat(
+      final ({
+        String conversationId,
+        CoachMessage message,
+        String disclaimer
+      }) result = await _repository.chat(
         message: trimmed,
         conversationId: state.conversationId,
       );
@@ -184,7 +187,8 @@ class PlanGeneratorController extends StateNotifier<PlanGeneratorState> {
       state = state.copyWith(request: request, clearError: true);
 
   Future<void> generate() async {
-    state = state.copyWith(isGenerating: true, clearError: true, clearPlan: true);
+    state =
+        state.copyWith(isGenerating: true, clearError: true, clearPlan: true);
     try {
       final GeneratedPlan plan =
           await _ref.read(coachRepositoryProvider).generatePlan(state.request);

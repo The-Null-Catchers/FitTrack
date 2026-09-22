@@ -178,10 +178,11 @@ class ActiveWorkoutController extends StateNotifier<ActiveWorkoutState> {
   }
 
   /// Copy previous-performance and progression hints onto the local session.
-  WorkoutSession _mergeRemoteContext(WorkoutSession local, WorkoutSession remote) {
-    final Map<String, SessionExercise> byExerciseId =
-        <String, SessionExercise>{
-      for (final SessionExercise item in remote.exercises) item.exercise.id: item,
+  WorkoutSession _mergeRemoteContext(
+      WorkoutSession local, WorkoutSession remote) {
+    final Map<String, SessionExercise> byExerciseId = <String, SessionExercise>{
+      for (final SessionExercise item in remote.exercises)
+        item.exercise.id: item,
     };
 
     return local.copyWith(
@@ -316,7 +317,8 @@ class ActiveWorkoutController extends StateNotifier<ActiveWorkoutState> {
     await _replaceExercise(item.copyWith(sets: sets));
   }
 
-  Future<void> addSet(String exerciseLocalId, {String setType = 'normal'}) async {
+  Future<void> addSet(String exerciseLocalId,
+      {String setType = 'normal'}) async {
     final SessionExercise? item = _exerciseById(exerciseLocalId);
     if (item == null) return;
 
@@ -338,9 +340,8 @@ class ActiveWorkoutController extends StateNotifier<ActiveWorkoutState> {
     final SessionExercise? item = _exerciseById(exerciseLocalId);
     if (item == null || item.sets.length <= 1) return;
 
-    final List<WorkoutSet> remaining = item.sets
-        .where((WorkoutSet set) => set.localId != setLocalId)
-        .toList();
+    final List<WorkoutSet> remaining =
+        item.sets.where((WorkoutSet set) => set.localId != setLocalId).toList();
     // Renumber so the displayed set numbers stay 1..n.
     final List<WorkoutSet> renumbered = <WorkoutSet>[
       for (int index = 0; index < remaining.length; index++)
@@ -377,7 +378,8 @@ class ActiveWorkoutController extends StateNotifier<ActiveWorkoutState> {
   }
 
   /// Swap the movement while keeping position, rest and logged sets.
-  Future<void> replaceExercise(String exerciseLocalId, Exercise replacement) async {
+  Future<void> replaceExercise(
+      String exerciseLocalId, Exercise replacement) async {
     final SessionExercise? item = _exerciseById(exerciseLocalId);
     if (item == null) return;
     await _replaceExercise(
@@ -460,7 +462,8 @@ class ActiveWorkoutController extends StateNotifier<ActiveWorkoutState> {
         return saved;
       } on ApiException catch (error) {
         if (!error.isConnectivity) {
-          state = state.copyWith(isFinishing: false, errorMessage: error.message);
+          state =
+              state.copyWith(isFinishing: false, errorMessage: error.message);
           return null;
         }
         // Connectivity dropped between the check and the call — fall through.
@@ -508,7 +511,8 @@ final StateNotifierProvider<ActiveWorkoutController, ActiveWorkoutState>
 /// Workout history, paged.
 final FutureProviderFamily<PagedResult<WorkoutSession>, int>
     workoutHistoryProvider =
-    FutureProvider.family<PagedResult<WorkoutSession>, int>((Ref ref, int page) {
+    FutureProvider.family<PagedResult<WorkoutSession>, int>(
+        (Ref ref, int page) {
   return ref.watch(workoutRepositoryProvider).history(page: page);
 });
 

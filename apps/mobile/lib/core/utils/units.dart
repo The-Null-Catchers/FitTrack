@@ -19,14 +19,16 @@ class Units {
   static double inchToCm(double inches) => inches * cmPerInch;
 
   /// Weight for display, rounded to a precision that matches the unit.
-  static String weight(double? kg, {required bool imperial, bool withUnit = true}) {
+  static String weight(double? kg,
+      {required bool imperial, bool withUnit = true}) {
     if (kg == null) return '—';
     final double value = imperial ? kgToLb(kg) : kg;
     final String number = _trim(value, imperial ? 1 : 1);
     return withUnit ? '$number ${imperial ? 'lb' : 'kg'}' : number;
   }
 
-  static String length(double? cm, {required bool imperial, bool withUnit = true}) {
+  static String length(double? cm,
+      {required bool imperial, bool withUnit = true}) {
     if (cm == null) return '—';
     final double value = imperial ? cmToInch(cm) : cm;
     final String number = _trim(value, 1);
@@ -47,9 +49,13 @@ class Units {
     if (metres == null) return '—';
     if (imperial) {
       final double miles = metres / 1609.344;
-      return miles >= 0.1 ? '${_trim(miles, 2)} mi' : '${_trim(metres * 3.28084, 0)} ft';
+      return miles >= 0.1
+          ? '${_trim(miles, 2)} mi'
+          : '${_trim(metres * 3.28084, 0)} ft';
     }
-    return metres >= 1000 ? '${_trim(metres / 1000, 2)} km' : '${_trim(metres, 0)} m';
+    return metres >= 1000
+        ? '${_trim(metres / 1000, 2)} km'
+        : '${_trim(metres, 0)} m';
   }
 
   /// `mm:ss`, or `h:mm:ss` once a session passes an hour.

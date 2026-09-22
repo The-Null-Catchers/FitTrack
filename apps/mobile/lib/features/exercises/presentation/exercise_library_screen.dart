@@ -7,7 +7,6 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/choice_chips.dart';
 import '../../../core/widgets/state_views.dart';
 import '../application/exercise_providers.dart';
 import '../domain/exercise.dart';
@@ -31,7 +30,14 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
   final ScrollController _scroll = ScrollController();
 
   static const List<String> _muscleGroups = <String>[
-    'chest', 'back', 'shoulders', 'arms', 'legs', 'core', 'cardio', 'mobility',
+    'chest',
+    'back',
+    'shoulders',
+    'arms',
+    'legs',
+    'core',
+    'cardio',
+    'mobility',
   ];
 
   @override
@@ -39,8 +45,7 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
     super.initState();
     _scroll.addListener(() {
       // Load the next page a screen ahead of the bottom.
-      if (_scroll.position.pixels >=
-          _scroll.position.maxScrollExtent - 400) {
+      if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 400) {
         ref.read(exerciseListProvider.notifier).loadMore();
       }
     });
@@ -105,7 +110,8 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
               children: <Widget>[
                 for (final String group in _muscleGroups)
                   Padding(
-                    padding: const EdgeInsetsDirectional.only(end: AppSpacing.sm),
+                    padding:
+                        const EdgeInsetsDirectional.only(end: AppSpacing.sm),
                     child: FilterChip(
                       label: Text(_label(group)),
                       selected: filters.muscleGroup == group,
@@ -186,9 +192,8 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
 
   String _label(String value) => value
       .split('_')
-      .map((String part) => part.isEmpty
-          ? part
-          : part[0].toUpperCase() + part.substring(1))
+      .map((String part) =>
+          part.isEmpty ? part : part[0].toUpperCase() + part.substring(1))
       .join(' ');
 }
 

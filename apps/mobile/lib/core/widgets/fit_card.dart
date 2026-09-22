@@ -136,7 +136,8 @@ class StatTile extends StatelessWidget {
           Row(
             children: <Widget>[
               if (icon != null) ...<Widget>[
-                Icon(icon, size: 14, color: tone ?? context.fitColors.textMuted),
+                Icon(icon,
+                    size: 14, color: tone ?? context.fitColors.textMuted),
                 const SizedBox(width: AppSpacing.xs),
               ],
               Flexible(

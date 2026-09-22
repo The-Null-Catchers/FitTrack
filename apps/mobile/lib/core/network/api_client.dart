@@ -39,7 +39,8 @@ class ApiClient {
 
     if (kDebugMode && Env.verboseLogging) {
       _dio.interceptors.add(
-        LogInterceptor(requestBody: true, responseBody: true, requestHeader: false),
+        LogInterceptor(
+            requestBody: true, responseBody: true, requestHeader: false),
       );
     }
   }
@@ -123,7 +124,8 @@ class ApiClient {
     try {
       // A bare Dio instance: the interceptors above must not recurse.
       final Response<dynamic> response = await Dio(
-        BaseOptions(baseUrl: Env.apiBaseUrl, connectTimeout: Env.connectTimeout),
+        BaseOptions(
+            baseUrl: Env.apiBaseUrl, connectTimeout: Env.connectTimeout),
       ).post<dynamic>(
         '/api/v1/auth/refresh',
         data: <String, dynamic>{'refresh_token': refreshToken},
@@ -148,7 +150,8 @@ class ApiClient {
     Map<String, dynamic>? query,
     CancelToken? cancelToken,
   }) =>
-      _send<T>(() => _dio.get<T>(path, queryParameters: query, cancelToken: cancelToken));
+      _send<T>(() =>
+          _dio.get<T>(path, queryParameters: query, cancelToken: cancelToken));
 
   Future<T> post<T>(
     String path, {

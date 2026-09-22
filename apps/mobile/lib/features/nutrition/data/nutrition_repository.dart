@@ -47,15 +47,15 @@ class NutritionRepository {
         if (customOnly) 'custom_only': true,
       },
     );
-    return PagedResult<Food>.fromJson<Food>(body, Food.fromJson);
+    return PagedResult.fromJson<Food>(body, Food.fromJson);
   }
 
   Future<List<Food>> recentFoods() async {
     final List<dynamic> body =
         await _client.get<List<dynamic>>('/api/v1/nutrition/foods/recent');
     return body
-        .map((dynamic item) =>
-            Food.fromJson(Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
+        .map((dynamic item) => Food.fromJson(
+            Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
         .toList();
   }
 
@@ -95,7 +95,8 @@ class NutritionRepository {
       'client_uuid': clientUuid,
     };
     try {
-      final Map<String, dynamic> body = await _client.post<Map<String, dynamic>>(
+      final Map<String, dynamic> body =
+          await _client.post<Map<String, dynamic>>(
         '/api/v1/nutrition/meals',
         data: payload,
       );
@@ -128,7 +129,8 @@ class NutritionRepository {
       'client_uuid': clientUuid,
     };
     try {
-      final Map<String, dynamic> body = await _client.post<Map<String, dynamic>>(
+      final Map<String, dynamic> body =
+          await _client.post<Map<String, dynamic>>(
         '/api/v1/nutrition/water',
         data: payload,
       );

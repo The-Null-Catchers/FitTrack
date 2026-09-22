@@ -57,8 +57,8 @@ class CoachConversation {
       CoachConversation(
         id: json['id'] as String,
         title: json['title'] as String? ?? 'Conversation',
-        createdAt:
-            DateTime.tryParse('${json['created_at']}')?.toLocal() ?? DateTime.now(),
+        createdAt: DateTime.tryParse('${json['created_at']}')?.toLocal() ??
+            DateTime.now(),
         lastMessageAt: json['last_message_at'] == null
             ? null
             : DateTime.tryParse('${json['last_message_at']}')?.toLocal(),
@@ -120,10 +120,12 @@ class GeneratedExercise {
   final GeneratedPrescription prescription;
   final String? exerciseId;
 
-  factory GeneratedExercise.fromJson(Map<String, dynamic> json) => GeneratedExercise(
+  factory GeneratedExercise.fromJson(Map<String, dynamic> json) =>
+      GeneratedExercise(
         exerciseName: json['exercise_name'] as String,
         prescription: GeneratedPrescription.fromJson(
-          Map<String, dynamic>.from(json['prescription'] as Map<dynamic, dynamic>),
+          Map<String, dynamic>.from(
+              json['prescription'] as Map<dynamic, dynamic>),
         ),
         exerciseId: json['exercise_id'] as String?,
       );

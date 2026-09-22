@@ -6,7 +6,6 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/state_views.dart';
 import '../application/coach_controller.dart';
 import '../domain/coach_models.dart';
 
@@ -65,7 +64,8 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
             icon: const Icon(Icons.auto_awesome_rounded),
           ),
           IconButton(
-            onPressed: () => ref.read(coachProvider.notifier).startNewConversation(),
+            onPressed: () =>
+                ref.read(coachProvider.notifier).startNewConversation(),
             tooltip: l10n.t('actionAdd'),
             icon: const Icon(Icons.add_comment_outlined),
           ),
@@ -79,7 +79,8 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
                 : ListView.builder(
                     controller: _scroll,
                     padding: const EdgeInsets.all(AppSpacing.screenPadding),
-                    itemCount: state.messages.length + (state.isSending ? 1 : 0),
+                    itemCount:
+                        state.messages.length + (state.isSending ? 1 : 0),
                     itemBuilder: (BuildContext context, int index) {
                       if (index >= state.messages.length) {
                         return const _TypingBubble();
@@ -109,7 +110,9 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
               vertical: AppSpacing.sm,
             ),
             child: Text(
-              state.disclaimer.isEmpty ? l10n.t('coachDisclaimer') : state.disclaimer,
+              state.disclaimer.isEmpty
+                  ? l10n.t('coachDisclaimer')
+                  : state.disclaimer,
               style: Theme.of(context).textTheme.labelSmall,
               textAlign: TextAlign.center,
             ),
@@ -209,8 +212,9 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Align(
-        alignment:
-            isUser ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+        alignment: isUser
+            ? AlignmentDirectional.centerEnd
+            : AlignmentDirectional.centerStart,
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxWidth: MediaQuery.sizeOf(context).width * 0.82,

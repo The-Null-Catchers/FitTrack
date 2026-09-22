@@ -92,14 +92,15 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(session.name, style: Theme.of(context).textTheme.titleMedium),
+              Text(session.name,
+                  style: Theme.of(context).textTheme.titleMedium),
               Text(
                 Units.duration(session.elapsed.inSeconds),
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      fontFeatures: const <FontFeature>[
-                        FontFeature.tabularFigures(),
-                      ],
-                    ),
+                  fontFeatures: const <FontFeature>[
+                    FontFeature.tabularFigures(),
+                  ],
+                ),
               ),
             ],
           ),
@@ -133,7 +134,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                   : ListView(
                       padding: const EdgeInsets.only(bottom: AppSpacing.huge),
                       children: <Widget>[
-                        _SessionSummaryStrip(session: session, imperial: imperial),
+                        _SessionSummaryStrip(
+                            session: session, imperial: imperial),
                         ...session.exercises.map(
                           (SessionExercise item) => _ExerciseCard(
                             key: ValueKey<String>(item.localId),
@@ -142,7 +144,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(AppSpacing.screenPadding),
+                          padding:
+                              const EdgeInsets.all(AppSpacing.screenPadding),
                           child: OutlinedButton.icon(
                             onPressed: () => _pickExercise(context),
                             icon: const Icon(Icons.add_rounded),
@@ -159,8 +162,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   }
 
   Future<void> _pickExercise(BuildContext context) async {
-    final Object? picked =
-        await context.pushNamed<Object?>(Routes.exercises, queryParameters: <String, String>{
+    final Object? picked = await context
+        .pushNamed<Object?>(Routes.exercises, queryParameters: <String, String>{
       'picker': 'true',
     });
     if (picked is Exercise) {
@@ -382,7 +385,8 @@ class _ExerciseCard extends ConsumerWidget {
                       ),
                     ),
                   ],
-                  const SizedBox(width: AppSpacing.minTouchTarget + AppSpacing.sm),
+                  const SizedBox(
+                      width: AppSpacing.minTouchTarget + AppSpacing.sm),
                 ],
               ),
             ),
@@ -399,7 +403,10 @@ class _ExerciseCard extends ConsumerWidget {
                   previousSet: entry.key < previousSets.length
                       ? previousSets[entry.key]
                       : null,
-                  onComplete: ({double? weightKg, int? reps, int? durationSeconds}) =>
+                  onComplete: (
+                          {double? weightKg,
+                          int? reps,
+                          int? durationSeconds}) =>
                       controller.completeSet(
                     sessionExercise.localId,
                     entry.value.localId,
@@ -407,7 +414,10 @@ class _ExerciseCard extends ConsumerWidget {
                     reps: reps,
                     durationSeconds: durationSeconds,
                   ),
-                  onChanged: ({double? weightKg, int? reps, int? durationSeconds}) =>
+                  onChanged: (
+                          {double? weightKg,
+                          int? reps,
+                          int? durationSeconds}) =>
                       controller.updateSet(
                     sessionExercise.localId,
                     entry.value.localId,
@@ -434,7 +444,8 @@ class _ExerciseCard extends ConsumerWidget {
                 children: <Widget>[
                   Expanded(
                     child: TextButton.icon(
-                      onPressed: () => controller.addSet(sessionExercise.localId),
+                      onPressed: () =>
+                          controller.addSet(sessionExercise.localId),
                       icon: const Icon(Icons.add_rounded, size: 18),
                       label: Text(l10n.t('workoutAddSet')),
                     ),
@@ -445,7 +456,8 @@ class _ExerciseCard extends ConsumerWidget {
                         sessionExercise.localId,
                         setType: 'warmup',
                       ),
-                      icon: const Icon(Icons.local_fire_department_outlined, size: 18),
+                      icon: const Icon(Icons.local_fire_department_outlined,
+                          size: 18),
                       label: Text(l10n.t('workoutWarmUp')),
                     ),
                   ),
@@ -479,7 +491,8 @@ class _ExerciseCard extends ConsumerWidget {
                   queryParameters: <String, String>{'picker': 'true'},
                 );
                 if (picked is Exercise) {
-                  await controller.replaceExercise(sessionExercise.localId, picked);
+                  await controller.replaceExercise(
+                      sessionExercise.localId, picked);
                 }
               },
             ),

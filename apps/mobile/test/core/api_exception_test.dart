@@ -54,7 +54,9 @@ void main() {
               'code': 'validation_error',
               'message': "Some of the information you entered isn't valid.",
               'details': <String, dynamic>{
-                'fields': <String, dynamic>{'height_cm': 'must be greater than 50'},
+                'fields': <String, dynamic>{
+                  'height_cm': 'must be greater than 50'
+                },
               },
             },
           },
@@ -66,7 +68,8 @@ void main() {
   });
 
   group('transport failures', () {
-    test('a connection error is treated as connectivity, not a real failure', () {
+    test('a connection error is treated as connectivity, not a real failure',
+        () {
       final ApiException error = ApiException.fromDio(
         DioException(
           requestOptions: _options(),

@@ -61,7 +61,8 @@ class ProfileScreen extends ConsumerWidget {
                           user?.fullName ?? '',
                           style: theme.textTheme.titleMedium,
                         ),
-                        Text(user?.email ?? '', style: theme.textTheme.bodySmall),
+                        Text(user?.email ?? '',
+                            style: theme.textTheme.bodySmall),
                         if (user != null && !user.emailVerified)
                           Padding(
                             padding: const EdgeInsets.only(top: AppSpacing.xs),
@@ -78,7 +79,6 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
           ),
-
           if (profile != null)
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -90,8 +90,8 @@ class ProfileScreen extends ConsumerWidget {
                   children: <Widget>[
                     StatTile(
                       label: l10n.t('fieldWeight'),
-                      value:
-                          Units.weight(profile.currentWeightKg, imperial: imperial),
+                      value: Units.weight(profile.currentWeightKg,
+                          imperial: imperial),
                     ),
                     StatTile(
                       label: l10n.t('fieldHeight'),
@@ -102,22 +102,21 @@ class ProfileScreen extends ConsumerWidget {
                       value: profile.primaryGoal
                           .replaceAll('_', ' ')
                           .split(' ')
-                          .map((String p) =>
-                              p.isEmpty ? p : p[0].toUpperCase() + p.substring(1))
+                          .map((String p) => p.isEmpty
+                              ? p
+                              : p[0].toUpperCase() + p.substring(1))
                           .join(' '),
                     ),
                   ],
                 ),
               ),
             ),
-
           SectionHeader(title: l10n.t('habitsTitle')),
           const _HabitsCard(),
-
           SectionHeader(title: l10n.t('profileAppearance')),
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding),
             child: FitCard(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
@@ -178,7 +177,9 @@ class ProfileScreen extends ConsumerWidget {
                     contentPadding: EdgeInsets.zero,
                     title: Text(l10n.t('fieldUnits')),
                     subtitle: Text(
-                      imperial ? l10n.t('unitsImperial') : l10n.t('unitsMetric'),
+                      imperial
+                          ? l10n.t('unitsImperial')
+                          : l10n.t('unitsMetric'),
                     ),
                     value: imperial,
                     onChanged: (bool value) =>
@@ -188,11 +189,10 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
           ),
-
           SectionHeader(title: l10n.t('profileSettings')),
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding),
             child: Column(
               children: <Widget>[
                 _SettingRow(
@@ -229,26 +229,26 @@ class ProfileScreen extends ConsumerWidget {
               ],
             ),
           ),
-
           const SizedBox(height: AppSpacing.xl),
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding),
             child: OutlinedButton.icon(
               onPressed: () => _signOut(context, ref),
               icon: const Icon(Icons.logout_rounded, size: 18),
               label: Text(l10n.t('authSignOut')),
             ),
           ),
-
           const SizedBox(height: AppSpacing.xl),
           FutureBuilder<PackageInfo>(
             future: PackageInfo.fromPlatform(),
-            builder: (BuildContext context, AsyncSnapshot<PackageInfo> snapshot) {
+            builder:
+                (BuildContext context, AsyncSnapshot<PackageInfo> snapshot) {
               final String version = snapshot.data?.version ?? '1.0.0';
               return Center(
                 child: Text(
-                  l10n.t('profileVersion', <String, Object?>{'version': version}),
+                  l10n.t(
+                      'profileVersion', <String, Object?>{'version': version}),
                   style: theme.textTheme.labelSmall,
                 ),
               );
@@ -359,7 +359,8 @@ class _HabitsCard extends ConsumerWidget {
               habitId: habit.id,
               loggedOn: DateTime.now(),
               count: habit.targetCount,
-              clientUuid: 'habit-${habit.id}-${DateTime.now().microsecondsSinceEpoch}',
+              clientUuid:
+                  'habit-${habit.id}-${DateTime.now().microsecondsSinceEpoch}',
             );
       } else {
         await ref.read(habitRepositoryProvider).unlog(habit.id, DateTime.now());

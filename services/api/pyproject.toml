@@ -25,6 +25,9 @@ dependencies = [
     "Pillow>=10.4.0",
     "structlog>=24.4.0",
     "python-slugify>=8.0.4",
+    # Alembic runs synchronously against `settings.sync_database_url`, which
+    # drops the +asyncpg driver and so resolves to psycopg2.
+    "psycopg2-binary>=2.9.9",
 ]
 
 [project.optional-dependencies]
@@ -51,6 +54,10 @@ ignore = ["B008", "RUF012", "SIM108"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# Several test modules import shared fixtures as `from tests.test_onboarding
+# import ONBOARDING`, which needs this directory on sys.path. `python -m pytest`
+# adds it implicitly; a bare `pytest` does not, so set it explicitly.
+pythonpath = ["."]
 filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.mypy]

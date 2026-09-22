@@ -133,8 +133,7 @@ class _ProgressPhotosScreenState extends ConsumerState<ProgressPhotosScreen> {
                     AppSpacing.screenPadding,
                     96,
                   ),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: AppSpacing.md,
                     crossAxisSpacing: AppSpacing.md,

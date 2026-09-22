@@ -9,7 +9,8 @@ void main() {
 
     test('grows with reps', () {
       expect(OneRepMax.estimate(100, 5), closeTo(116.67, 0.01));
-      expect(OneRepMax.estimate(100, 10)! > OneRepMax.estimate(100, 5)!, isTrue);
+      expect(
+          OneRepMax.estimate(100, 10)! > OneRepMax.estimate(100, 5)!, isTrue);
     });
 
     test('plateaus past twelve reps, where the formula stops being useful', () {
@@ -23,7 +24,8 @@ void main() {
       expect(OneRepMax.estimate(100, 0), isNull);
     });
 
-    test('matches the server formula so offline numbers do not shift on sync', () {
+    test('matches the server formula so offline numbers do not shift on sync',
+        () {
       // Epley: 80 * (1 + 8/30) = 101.33
       expect(OneRepMax.estimate(80, 8), closeTo(101.33, 0.01));
     });

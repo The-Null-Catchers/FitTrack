@@ -28,13 +28,13 @@ class ExerciseRepository {
       if (page == 1) {
         await _cache.write(CacheDao.exerciseSearchKey(filters.cacheKey), body);
       }
-      return PagedResult<Exercise>.fromJson<Exercise>(body, Exercise.fromJson);
+      return PagedResult.fromJson<Exercise>(body, Exercise.fromJson);
     } on ApiException catch (error) {
       if (page == 1 && error.isConnectivity) {
         final CachedDocument? cached =
             await _cache.read(CacheDao.exerciseSearchKey(filters.cacheKey));
         if (cached != null) {
-          return PagedResult<Exercise>.fromJson<Exercise>(
+          return PagedResult.fromJson<Exercise>(
             cached.asMap,
             Exercise.fromJson,
           );

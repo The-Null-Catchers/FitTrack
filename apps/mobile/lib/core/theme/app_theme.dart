@@ -29,12 +29,14 @@ class AppTheme {
       onSurface: isDark ? AppColors.darkText : AppColors.lightText,
       surfaceContainerHighest:
           isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
-      onSurfaceVariant: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+      onSurfaceVariant:
+          isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
       outline: isDark ? AppColors.darkBorder : AppColors.lightBorder,
       outlineVariant: isDark ? AppColors.darkBorder : AppColors.lightBorder,
     );
 
-    final TextTheme textTheme = _textTheme(scheme.onSurface, scheme.onSurfaceVariant);
+    final TextTheme textTheme =
+        _textTheme(scheme.onSurface, scheme.onSurfaceVariant);
 
     return ThemeData(
       useMaterial3: true,
@@ -67,7 +69,8 @@ class AppTheme {
           side: BorderSide(color: scheme.outline),
         ),
       ),
-      dividerTheme: DividerThemeData(color: scheme.outline, space: 1, thickness: 1),
+      dividerTheme:
+          DividerThemeData(color: scheme.outline, space: 1, thickness: 1),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(0, AppSpacing.minTouchTarget),
@@ -120,7 +123,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide(color: scheme.error, width: 1.6),
         ),
-        hintStyle: textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+        hintStyle:
+            textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: scheme.surfaceContainerHighest,
@@ -147,8 +151,9 @@ class AppTheme {
             color: states.contains(WidgetState.selected)
                 ? scheme.primary
                 : scheme.onSurfaceVariant,
-            fontWeight:
-                states.contains(WidgetState.selected) ? FontWeight.w600 : FontWeight.w500,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w600
+                : FontWeight.w500,
           ),
         ),
       ),
@@ -157,7 +162,8 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
         ),
       ),
       dialogTheme: DialogTheme(
@@ -169,7 +175,8 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isDark ? AppColors.darkSurfaceVariant : AppColors.lightText,
+        backgroundColor:
+            isDark ? AppColors.darkSurfaceVariant : AppColors.lightText,
         contentTextStyle: textTheme.bodyMedium?.copyWith(
           color: isDark ? AppColors.darkText : Colors.white,
         ),
@@ -234,9 +241,12 @@ class AppTheme {
       bodyLarge: TextStyle(fontSize: 16, height: 1.5, color: onSurface),
       bodyMedium: TextStyle(fontSize: 14, height: 1.5, color: onSurface),
       bodySmall: TextStyle(fontSize: 13, height: 1.45, color: muted),
-      labelLarge: TextStyle(fontSize: 15, height: 1.3, fontWeight: FontWeight.w600),
-      labelMedium: TextStyle(fontSize: 13, height: 1.3, fontWeight: FontWeight.w500),
-      labelSmall: TextStyle(fontSize: 11.5, height: 1.3, fontWeight: FontWeight.w500),
+      labelLarge:
+          TextStyle(fontSize: 15, height: 1.3, fontWeight: FontWeight.w600),
+      labelMedium:
+          TextStyle(fontSize: 13, height: 1.3, fontWeight: FontWeight.w500),
+      labelSmall:
+          TextStyle(fontSize: 11.5, height: 1.3, fontWeight: FontWeight.w500),
     );
   }
 }

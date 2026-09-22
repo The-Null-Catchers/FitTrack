@@ -155,7 +155,9 @@ class _SetRowState extends State<SetRow> {
                 _previousLabel(),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: colors.textMuted,
-                  fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+                  fontFeatures: const <FontFeature>[
+                    FontFeature.tabularFigures()
+                  ],
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -180,7 +182,8 @@ class _SetRowState extends State<SetRow> {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Focus(
-                  onFocusChange: (bool hasFocus) => _secondaryHasFocus = hasFocus,
+                  onFocusChange: (bool hasFocus) =>
+                      _secondaryHasFocus = hasFocus,
                   child: _CompactField(
                     controller: _secondary,
                     hint: l10n.t('workoutReps'),
@@ -325,8 +328,8 @@ class _CompactField extends StatelessWidget {
         ),
       ],
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
-          ),
+        fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+      ),
       decoration: InputDecoration(
         hintText: hint,
         isDense: true,

@@ -79,7 +79,8 @@ class CacheDao {
   }
 
   Future<void> delete(String key) async {
-    await _db.delete(AppDatabase.cacheTable, where: 'key = ?', whereArgs: <Object?>[key]);
+    await _db.delete(AppDatabase.cacheTable,
+        where: 'key = ?', whereArgs: <Object?>[key]);
   }
 
   Future<void> deletePrefix(String prefix) async {

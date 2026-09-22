@@ -128,7 +128,8 @@ class ProgramDetailScreen extends ConsumerWidget {
                               Expanded(
                                 child: Text(
                                   item.exercise.displayName(
-                                    Localizations.localeOf(context).languageCode,
+                                    Localizations.localeOf(context)
+                                        .languageCode,
                                   ),
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
@@ -138,7 +139,8 @@ class ProgramDetailScreen extends ConsumerWidget {
                                 style: Theme.of(context)
                                     .textTheme
                                     .labelSmall
-                                    ?.copyWith(color: context.fitColors.textMuted),
+                                    ?.copyWith(
+                                        color: context.fitColors.textMuted),
                               ),
                             ],
                           ),
@@ -161,7 +163,9 @@ class ProgramDetailScreen extends ConsumerWidget {
     Program plan,
     ProgramDay day,
   ) async {
-    await ref.read(activeWorkoutProvider.notifier).start(program: plan, day: day);
+    await ref
+        .read(activeWorkoutProvider.notifier)
+        .start(program: plan, day: day);
     if (context.mounted) context.pushNamed(Routes.activeWorkout);
   }
 

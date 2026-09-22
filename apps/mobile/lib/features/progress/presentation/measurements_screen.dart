@@ -60,8 +60,7 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
               ),
               children: <Widget>[
                 Padding(
-                  padding:
-                      const EdgeInsetsDirectional.only(end: AppSpacing.sm),
+                  padding: const EdgeInsetsDirectional.only(end: AppSpacing.sm),
                   child: FilterChip(
                     label: Text(l10n.t('actionSeeAll')),
                     selected: _filter == null,
@@ -140,7 +139,8 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext sheetContext) => StatefulBuilder(
-        builder: (BuildContext builderContext, StateSetter setSheetState) => Padding(
+        builder: (BuildContext builderContext, StateSetter setSheetState) =>
+            Padding(
           padding: EdgeInsets.only(
             left: AppSpacing.screenPadding,
             right: AppSpacing.screenPadding,
@@ -159,7 +159,8 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
               const SizedBox(height: AppSpacing.lg),
               DropdownButtonFormField<String>(
                 value: type,
-                decoration: InputDecoration(labelText: l10n.t('progressMeasurements')),
+                decoration:
+                    InputDecoration(labelText: l10n.t('progressMeasurements')),
                 items: _types
                     .map((String value) => DropdownMenuItem<String>(
                           value: value,

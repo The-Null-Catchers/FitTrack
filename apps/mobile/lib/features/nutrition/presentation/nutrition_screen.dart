@@ -45,8 +45,9 @@ class NutritionScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 IconButton(
-                  onPressed: () => ref.read(nutritionDateProvider.notifier).state =
-                      date.subtract(const Duration(days: 1)),
+                  onPressed: () => ref
+                      .read(nutritionDateProvider.notifier)
+                      .state = date.subtract(const Duration(days: 1)),
                   icon: const Icon(Icons.chevron_left_rounded),
                   tooltip: 'Previous day',
                 ),
@@ -149,7 +150,6 @@ class NutritionScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-
               SectionHeader(title: l10n.t('nutritionWater')),
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -177,14 +177,12 @@ class NutritionScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-
               for (final String mealType in _mealTypes)
                 _MealSection(
                   mealType: mealType,
                   meals: data.mealsOfType(mealType),
                   totalCalories: data.caloriesOfType(mealType),
                 ),
-
               if (data.meals.isEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.xl),
@@ -263,8 +261,8 @@ class _MealSection extends ConsumerWidget {
         ),
         if (meals.isNotEmpty)
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding),
             child: FitCard(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
               child: Column(

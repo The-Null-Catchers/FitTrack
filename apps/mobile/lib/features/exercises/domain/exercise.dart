@@ -69,9 +69,10 @@ class Exercise {
         imageUrl: json['image_url'] as String?,
         isPublic: json['is_public'] as bool? ?? true,
         description: json['description'] as String?,
-        instructions: ((json['instructions'] as List<dynamic>?) ?? const <dynamic>[])
-            .map((dynamic item) => '$item')
-            .toList(),
+        instructions:
+            ((json['instructions'] as List<dynamic>?) ?? const <dynamic>[])
+                .map((dynamic item) => '$item')
+                .toList(),
         secondaryMuscles:
             ((json['secondary_muscles'] as List<dynamic>?) ?? const <dynamic>[])
                 .map((dynamic item) => '$item')
@@ -135,7 +136,8 @@ class ExerciseFilters {
   }) =>
       ExerciseFilters(
         query: query ?? this.query,
-        muscleGroup: clearMuscleGroup ? null : (muscleGroup ?? this.muscleGroup),
+        muscleGroup:
+            clearMuscleGroup ? null : (muscleGroup ?? this.muscleGroup),
         equipment: clearEquipment ? null : (equipment ?? this.equipment),
         difficulty: clearDifficulty ? null : (difficulty ?? this.difficulty),
       );

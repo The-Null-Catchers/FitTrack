@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Runtime ARB loader.
 ///
@@ -66,7 +66,8 @@ class AppLocalizations {
     return AppLocalizations(Locale(languageCode), strings);
   }
 
-  static final Map<String, Map<String, String>> _cache = <String, Map<String, String>>{};
+  static final Map<String, Map<String, String>> _cache =
+      <String, Map<String, String>>{};
 
   static Future<Map<String, String>> _loadArb(String languageCode) async {
     final Map<String, String>? cached = _cache[languageCode];
@@ -76,7 +77,8 @@ class AppLocalizations {
 
     final String raw =
         await rootBundle.loadString('lib/l10n/app_$languageCode.arb');
-    final Map<String, dynamic> decoded = json.decode(raw) as Map<String, dynamic>;
+    final Map<String, dynamic> decoded =
+        json.decode(raw) as Map<String, dynamic>;
 
     final Map<String, String> strings = <String, String>{};
     for (final MapEntry<String, dynamic> entry in decoded.entries) {
@@ -90,7 +92,8 @@ class AppLocalizations {
   }
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -115,7 +118,15 @@ class Bidi {
   const Bidi._();
 
   static const Set<String> _rtlLanguages = <String>{
-    'ar', 'fa', 'he', 'iw', 'ur', 'ps', 'sd', 'ug', 'yi',
+    'ar',
+    'fa',
+    'he',
+    'iw',
+    'ur',
+    'ps',
+    'sd',
+    'ug',
+    'yi',
   };
 
   static bool isRtlLanguage(String languageCode) =>

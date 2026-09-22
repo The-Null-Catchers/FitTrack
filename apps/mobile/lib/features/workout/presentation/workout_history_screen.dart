@@ -41,11 +41,13 @@ class WorkoutHistoryScreen extends ConsumerWidget {
             );
           }
           return RefreshIndicator(
-            onRefresh: () async => ref.refresh(workoutHistoryProvider(1).future),
+            onRefresh: () async =>
+                ref.refresh(workoutHistoryProvider(1).future),
             child: ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.screenPadding),
               itemCount: page.items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.md),
               itemBuilder: (BuildContext context, int index) {
                 final WorkoutSession session = page.items[index];
                 return FitCard(
@@ -60,7 +62,8 @@ class WorkoutHistoryScreen extends ConsumerWidget {
                               children: <Widget>[
                                 Text(
                                   session.name,
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
                                 ),
                                 Text(
                                   Formatters.relativeDay(

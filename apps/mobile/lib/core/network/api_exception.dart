@@ -40,7 +40,8 @@ class ApiException implements Exception {
     final Object? fields = details['fields'];
     if (fields is Map) {
       return fields.map(
-        (Object? key, Object? value) => MapEntry<String, String>('$key', '$value'),
+        (Object? key, Object? value) =>
+            MapEntry<String, String>('$key', '$value'),
       );
     }
     return const <String, String>{};
@@ -51,6 +52,7 @@ class ApiException implements Exception {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
+      case DioExceptionType.transformTimeout:
         return const ApiException(
           message: 'That took too long. Please try again.',
           code: 'timeout',
@@ -63,7 +65,8 @@ class ApiException implements Exception {
           code: 'network_error',
         );
       case DioExceptionType.cancel:
-        return const ApiException(message: 'Request cancelled.', code: 'cancelled');
+        return const ApiException(
+            message: 'Request cancelled.', code: 'cancelled');
       case DioExceptionType.badCertificate:
         return const ApiException(
           message: "We couldn't establish a secure connection.",
@@ -79,13 +82,15 @@ class ApiException implements Exception {
     final dynamic body = response?.data;
 
     if (body is Map && body['error'] is Map) {
-      final Map<dynamic, dynamic> envelope = body['error'] as Map<dynamic, dynamic>;
+      final Map<dynamic, dynamic> envelope =
+          body['error'] as Map<dynamic, dynamic>;
       return ApiException(
         message: '${envelope['message'] ?? _defaultMessage(status)}',
         code: '${envelope['code'] ?? 'error'}',
         statusCode: status,
         details: Map<String, dynamic>.from(
-          (envelope['details'] as Map<dynamic, dynamic>?) ?? <dynamic, dynamic>{},
+          (envelope['details'] as Map<dynamic, dynamic>?) ??
+              <dynamic, dynamic>{},
         ),
         requestId: envelope['request_id'] as String?,
       );
@@ -99,12 +104,16 @@ class ApiException implements Exception {
   }
 
   static String _defaultMessage(int? status) {
+    if (status == null) {
+      return 'Something went wrong. Please try again.';
+    }
     return switch (status) {
       401 => 'Please sign in to continue.',
       403 => "You don't have access to that.",
       404 => "We couldn't find what you were looking for.",
       429 => "You're doing that a little too often. Please try again shortly.",
-      >= 500 => 'FitTrack is having a problem right now. Please try again shortly.',
+      >= 500 =>
+        'FitTrack is having a problem right now. Please try again shortly.',
       _ => 'Something went wrong. Please try again.',
     };
   }

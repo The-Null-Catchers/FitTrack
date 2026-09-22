@@ -8,7 +8,8 @@ class CoachRepository {
 
   final ApiClient _client;
 
-  Future<({String conversationId, CoachMessage message, String disclaimer})> chat({
+  Future<({String conversationId, CoachMessage message, String disclaimer})>
+      chat({
     required String message,
     String? conversationId,
     bool includeContext = true,

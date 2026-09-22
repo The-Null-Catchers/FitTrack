@@ -91,7 +91,9 @@ class _PhotoCompareScreenState extends ConsumerState<PhotoCompareScreen> {
                   children: <Widget>[
                     StatTile(
                       label: l10n.t('progressCompare'),
-                      value: '$days ${l10n.t('daysPerWeek', <String, Object?>{'count': ''}).trim()}',
+                      value: '$days ${l10n.t('daysPerWeek', <String, Object?>{
+                            'count': ''
+                          }).trim()}',
                     ),
                     if (weightChange != null)
                       StatTile(
@@ -169,7 +171,8 @@ class _ComparePane extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppRadius.lg),
               child: photo.url == null
                   ? ColoredBox(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                     )
                   : CachedNetworkImage(
                       imageUrl: photo.url!,

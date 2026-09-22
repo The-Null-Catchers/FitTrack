@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
-import '../../../core/network/api_client.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_toast.dart';
@@ -75,9 +74,9 @@ class NotificationSettingsScreen extends ConsumerWidget {
   ) async {
     try {
       await ref.read(apiClientProvider).patch<Map<String, dynamic>>(
-            '/api/v1/notifications/preferences',
-            data: <String, dynamic>{key: value},
-          );
+        '/api/v1/notifications/preferences',
+        data: <String, dynamic>{key: value},
+      );
       ref.invalidate(notificationPreferencesProvider);
     } on Object {
       if (context.mounted) {

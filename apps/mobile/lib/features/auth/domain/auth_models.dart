@@ -54,7 +54,8 @@ class AuthUser {
         profile: json['profile'] == null
             ? null
             : FitnessProfile.fromJson(
-                Map<String, dynamic>.from(json['profile'] as Map<dynamic, dynamic>),
+                Map<String, dynamic>.from(
+                    json['profile'] as Map<dynamic, dynamic>),
               ),
       );
 
@@ -155,7 +156,8 @@ class FitnessProfile {
         activityLevel: json['activity_level'] as String? ?? 'moderate',
         workoutLocation: json['workout_location'] as String? ?? 'gym',
         trainingDaysPerWeek: json['training_days_per_week'] as int? ?? 3,
-        preferredSessionMinutes: json['preferred_session_minutes'] as int? ?? 60,
+        preferredSessionMinutes:
+            json['preferred_session_minutes'] as int? ?? 60,
         defaultRestSeconds: json['default_rest_seconds'] as int? ?? 90,
         dailyWaterTargetMl: json['daily_water_target_ml'] as int? ?? 2000,
         targetsAreManual: json['targets_are_manual'] as bool? ?? false,
@@ -223,9 +225,8 @@ class AuthSession {
         accessToken: json['access_token'] as String,
         refreshToken: json['refresh_token'] as String,
         expiresIn: json['expires_in'] as int? ?? 900,
-        refreshExpiresAt:
-            DateTime.tryParse('${json['refresh_expires_at']}') ??
-                DateTime.now().add(const Duration(days: 30)),
+        refreshExpiresAt: DateTime.tryParse('${json['refresh_expires_at']}') ??
+            DateTime.now().add(const Duration(days: 30)),
         user: AuthUser.fromJson(
           Map<String, dynamic>.from(json['user'] as Map<dynamic, dynamic>),
         ),

@@ -76,7 +76,8 @@ final GlobalKey<NavigatorState> _shellKey = GlobalKey<NavigatorState>();
 /// Rebuilds the router's redirect whenever auth state changes.
 class _AuthRefreshNotifier extends ChangeNotifier {
   _AuthRefreshNotifier(this._ref) {
-    _ref.listen<AuthState>(authControllerProvider, (AuthState? _, AuthState __) {
+    _ref.listen<AuthState>(authControllerProvider,
+        (AuthState? _, AuthState __) {
       notifyListeners();
     });
   }
@@ -249,7 +250,8 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         path: '/food-search',
         name: Routes.foodSearch,
         parentNavigatorKey: _rootKey,
-        builder: (BuildContext context, GoRouterState state) => FoodSearchScreen(
+        builder: (BuildContext context, GoRouterState state) =>
+            FoodSearchScreen(
           mealType: state.uri.queryParameters['meal'] ?? 'snack',
         ),
       ),

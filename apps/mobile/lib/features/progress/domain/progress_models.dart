@@ -19,7 +19,8 @@ class BodyWeightEntry {
   final double? muscleMassKg;
   final String? note;
 
-  factory BodyWeightEntry.fromJson(Map<String, dynamic> json) => BodyWeightEntry(
+  factory BodyWeightEntry.fromJson(Map<String, dynamic> json) =>
+      BodyWeightEntry(
         recordedOn: DateTime.parse(json['recorded_on'] as String),
         weightKg: (json['weight_kg'] as num).toDouble(),
         id: json['id'] as String?,
@@ -57,7 +58,8 @@ class MeasurementEntry {
 
   String get label => customLabel ?? measurementType;
 
-  factory MeasurementEntry.fromJson(Map<String, dynamic> json) => MeasurementEntry(
+  factory MeasurementEntry.fromJson(Map<String, dynamic> json) =>
+      MeasurementEntry(
         recordedOn: DateTime.parse(json['recorded_on'] as String),
         measurementType: json['measurement_type'] as String,
         valueCm: (json['value_cm'] as num).toDouble(),
@@ -253,7 +255,8 @@ class ExerciseProgress {
   final double? changePercent;
   final String? summary;
 
-  factory ExerciseProgress.fromJson(Map<String, dynamic> json) => ExerciseProgress(
+  factory ExerciseProgress.fromJson(Map<String, dynamic> json) =>
+      ExerciseProgress(
         exerciseId: json['exercise_id'] as String,
         exerciseName: json['exercise_name'] as String,
         range: json['range'] as String? ?? '6m',
@@ -280,7 +283,8 @@ class MuscleGroupVolume {
   final int setCount;
   final double percent;
 
-  factory MuscleGroupVolume.fromJson(Map<String, dynamic> json) => MuscleGroupVolume(
+  factory MuscleGroupVolume.fromJson(Map<String, dynamic> json) =>
+      MuscleGroupVolume(
         muscleGroup: json['muscle_group'] as String,
         volumeKg: (json['volume_kg'] as num?)?.toDouble() ?? 0,
         setCount: json['set_count'] as int? ?? 0,
@@ -313,7 +317,8 @@ class TrainingOverview {
   final int personalRecords;
   final String? summary;
 
-  factory TrainingOverview.fromJson(Map<String, dynamic> json) => TrainingOverview(
+  factory TrainingOverview.fromJson(Map<String, dynamic> json) =>
+      TrainingOverview(
         range: json['range'] as String? ?? '30d',
         totalWorkouts: json['total_workouts'] as int? ?? 0,
         totalDurationMinutes: json['total_duration_minutes'] as int? ?? 0,
@@ -323,7 +328,8 @@ class TrainingOverview {
             (json['average_session_minutes'] as num?)?.toDouble() ?? 0,
         workoutsPerWeek: (json['workouts_per_week'] as num?)?.toDouble() ?? 0,
         volumeByMuscleGroup:
-            ((json['volume_by_muscle_group'] as List<dynamic>?) ?? const <dynamic>[])
+            ((json['volume_by_muscle_group'] as List<dynamic>?) ??
+                    const <dynamic>[])
                 .map((dynamic item) => MuscleGroupVolume.fromJson(
                     Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
                 .toList(),
@@ -414,7 +420,8 @@ class ActiveSessionRef {
   final int completedSetCount;
   final int totalSetCount;
 
-  factory ActiveSessionRef.fromJson(Map<String, dynamic> json) => ActiveSessionRef(
+  factory ActiveSessionRef.fromJson(Map<String, dynamic> json) =>
+      ActiveSessionRef(
         id: json['id'] as String,
         name: json['name'] as String,
         startedAt: DateTime.parse(json['started_at'] as String).toLocal(),
@@ -546,14 +553,16 @@ class DashboardData {
               ),
         latestWeightKg: (json['latest_weight_kg'] as num?)?.toDouble(),
         weightChange30dKg: (json['weight_change_30d_kg'] as num?)?.toDouble(),
-        recentRecords: ((json['recent_records'] as List<dynamic>?) ?? const <dynamic>[])
-            .map((dynamic item) => PersonalRecord.fromJson(
-                Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
-            .toList(),
-        activeGoals: ((json['active_goals'] as List<dynamic>?) ?? const <dynamic>[])
-            .map((dynamic item) =>
-                Goal.fromJson(Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
-            .toList(),
+        recentRecords:
+            ((json['recent_records'] as List<dynamic>?) ?? const <dynamic>[])
+                .map((dynamic item) => PersonalRecord.fromJson(
+                    Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
+                .toList(),
+        activeGoals:
+            ((json['active_goals'] as List<dynamic>?) ?? const <dynamic>[])
+                .map((dynamic item) => Goal.fromJson(
+                    Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
+                .toList(),
         habitsCompletedToday: json['habits_completed_today'] as int? ?? 0,
         habitsTotalToday: json['habits_total_today'] as int? ?? 0,
         unreadNotifications: json['unread_notifications'] as int? ?? 0,
@@ -573,8 +582,9 @@ class DashboardData {
         'weight_trend': weightTrend?.toJson(),
         'latest_weight_kg': latestWeightKg,
         'weight_change_30d_kg': weightChange30dKg,
-        'recent_records':
-            recentRecords.map((PersonalRecord record) => record.toJson()).toList(),
+        'recent_records': recentRecords
+            .map((PersonalRecord record) => record.toJson())
+            .toList(),
         'active_goals': activeGoals.map((Goal goal) => goal.toJson()).toList(),
         'habits_completed_today': habitsCompletedToday,
         'habits_total_today': habitsTotalToday,

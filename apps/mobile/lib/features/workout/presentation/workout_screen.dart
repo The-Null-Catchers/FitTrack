@@ -77,7 +77,6 @@ class WorkoutScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-
               if (plan == null)
                 Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.huge),
@@ -93,8 +92,10 @@ class WorkoutScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: AppSpacing.md),
                         OutlinedButton.icon(
-                          onPressed: () => context.pushNamed(Routes.planGenerator),
-                          icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+                          onPressed: () =>
+                              context.pushNamed(Routes.planGenerator),
+                          icon:
+                              const Icon(Icons.auto_awesome_rounded, size: 18),
                           label: Text(l10n.t('coachGeneratePlan')),
                         ),
                       ],
@@ -131,7 +132,6 @@ class WorkoutScreen extends ConsumerWidget {
                   ),
                 ),
               ],
-
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.screenPadding),
                 child: OutlinedButton.icon(
@@ -139,7 +139,8 @@ class WorkoutScreen extends ConsumerWidget {
                       ? null
                       : () => _startEmptyWorkout(context, ref),
                   icon: const Icon(Icons.add_rounded),
-                  label: Text('${l10n.t('workoutStart')} · ${l10n.t('commonNone')}'),
+                  label: Text(
+                      '${l10n.t('workoutStart')} · ${l10n.t('commonNone')}'),
                 ),
               ),
             ],

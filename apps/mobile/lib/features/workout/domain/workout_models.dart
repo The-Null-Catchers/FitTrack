@@ -155,7 +155,8 @@ class PreviousPerformance {
 
   factory PreviousPerformance.fromJson(Map<String, dynamic> json) =>
       PreviousPerformance(
-        performedAt: DateTime.tryParse('${json['performed_at']}') ?? DateTime.now(),
+        performedAt:
+            DateTime.tryParse('${json['performed_at']}') ?? DateTime.now(),
         sets: ((json['sets'] as List<dynamic>?) ?? const <dynamic>[])
             .map((dynamic item) => WorkoutSet.fromJson(
                 Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
@@ -163,7 +164,8 @@ class PreviousPerformance {
         bestSet: json['best_set'] == null
             ? null
             : WorkoutSet.fromJson(
-                Map<String, dynamic>.from(json['best_set'] as Map<dynamic, dynamic>),
+                Map<String, dynamic>.from(
+                    json['best_set'] as Map<dynamic, dynamic>),
               ),
         totalVolumeKg: (json['total_volume_kg'] as num?)?.toDouble() ?? 0,
       );
@@ -205,7 +207,8 @@ class SessionExercise {
   final PreviousPerformance? previous;
   final String? progressionHint;
 
-  int get completedSets => sets.where((WorkoutSet set) => set.isCompleted).length;
+  int get completedSets =>
+      sets.where((WorkoutSet set) => set.isCompleted).length;
 
   int get targetSets => (targetSnapshot['sets'] as int?) ?? sets.length;
 
@@ -220,7 +223,8 @@ class SessionExercise {
     final int? seconds = targetSnapshot['duration_seconds'] as int?;
     if (seconds != null) return '$setCount × ${seconds}s';
     if (min == null && max == null) return '$setCount sets';
-    if (min != null && max != null && min != max) return '$setCount × $min-$max';
+    if (min != null && max != null && min != max)
+      return '$setCount × $min-$max';
     return '$setCount × ${max ?? min}';
   }
 
@@ -250,7 +254,8 @@ class SessionExercise {
         progressionHint: progressionHint ?? this.progressionHint,
       );
 
-  factory SessionExercise.fromJson(Map<String, dynamic> json) => SessionExercise(
+  factory SessionExercise.fromJson(Map<String, dynamic> json) =>
+      SessionExercise(
         localId: json['local_id'] as String? ?? json['id'] as String? ?? '',
         exercise: Exercise.fromJson(
           Map<String, dynamic>.from(json['exercise'] as Map<dynamic, dynamic>),
@@ -262,7 +267,8 @@ class SessionExercise {
         notes: json['notes'] as String?,
         supersetGroup: json['superset_group'] as int?,
         targetSnapshot: Map<String, dynamic>.from(
-          (json['target_snapshot'] as Map<dynamic, dynamic>?) ?? <dynamic, dynamic>{},
+          (json['target_snapshot'] as Map<dynamic, dynamic>?) ??
+              <dynamic, dynamic>{},
         ),
         sets: ((json['sets'] as List<dynamic>?) ?? const <dynamic>[])
             .map((dynamic item) => WorkoutSet.fromJson(
@@ -271,7 +277,8 @@ class SessionExercise {
         previous: json['previous'] == null
             ? null
             : PreviousPerformance.fromJson(
-                Map<String, dynamic>.from(json['previous'] as Map<dynamic, dynamic>),
+                Map<String, dynamic>.from(
+                    json['previous'] as Map<dynamic, dynamic>),
               ),
         progressionHint: json['progression_hint'] as String?,
       );
@@ -340,7 +347,8 @@ class PersonalRecord {
         recordType: json['record_type'] as String,
         value: (json['value'] as num).toDouble(),
         unit: json['unit'] as String? ?? '',
-        achievedAt: DateTime.tryParse('${json['achieved_at']}') ?? DateTime.now(),
+        achievedAt:
+            DateTime.tryParse('${json['achieved_at']}') ?? DateTime.now(),
         exercise: Exercise.fromJson(
           Map<String, dynamic>.from(json['exercise'] as Map<dynamic, dynamic>),
         ),
@@ -425,17 +433,16 @@ class WorkoutSession {
         (int sum, SessionExercise item) => sum + item.completedSets,
       );
 
-  int get plannedSetCount =>
-      exercises.fold<int>(0, (int sum, SessionExercise item) => sum + item.sets.length);
+  int get plannedSetCount => exercises.fold<int>(
+      0, (int sum, SessionExercise item) => sum + item.sets.length);
 
   /// Volume computed locally, so the summary is right even offline.
   double get localVolumeKg => exercises.fold<double>(
         0,
         (double sum, SessionExercise item) =>
             sum +
-            item.sets
-                .where((WorkoutSet set) => set.isCompleted)
-                .fold<double>(0, (double s, WorkoutSet set) => s + set.volumeKg),
+            item.sets.where((WorkoutSet set) => set.isCompleted).fold<double>(
+                0, (double s, WorkoutSet set) => s + set.volumeKg),
       );
 
   Duration get elapsed => DateTime.now().difference(startedAt);
@@ -540,8 +547,9 @@ class WorkoutSession {
         'pr_count': prCount,
         'exercises':
             exercises.map((SessionExercise item) => item.toJson()).toList(),
-        'personal_records':
-            personalRecords.map((PersonalRecord record) => record.toJson()).toList(),
+        'personal_records': personalRecords
+            .map((PersonalRecord record) => record.toJson())
+            .toList(),
         'is_local_only': isLocalOnly,
       };
 
@@ -558,8 +566,7 @@ class WorkoutSession {
         if (durationSeconds != null) 'duration_seconds': durationSeconds,
         if (notes != null) 'notes': notes,
         if (perceivedEffort != null) 'perceived_effort': perceivedEffort,
-        'exercises': exercises
-            .map((SessionExercise item) => item.toSyncJson())
-            .toList(),
+        'exercises':
+            exercises.map((SessionExercise item) => item.toSyncJson()).toList(),
       };
 }

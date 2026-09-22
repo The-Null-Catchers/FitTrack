@@ -67,7 +67,8 @@ class HabitRepository {
       'client_uuid': clientUuid,
     };
     try {
-      final Map<String, dynamic> body = await _client.post<Map<String, dynamic>>(
+      final Map<String, dynamic> body =
+          await _client.post<Map<String, dynamic>>(
         '/api/v1/habits/$habitId/log',
         data: payload,
       );
@@ -86,7 +87,8 @@ class HabitRepository {
   }
 
   Future<Habit> unlog(String habitId, DateTime loggedOn) async {
-    final Map<String, dynamic> body = await _client.delete<Map<String, dynamic>>(
+    final Map<String, dynamic> body =
+        await _client.delete<Map<String, dynamic>>(
       '/api/v1/habits/$habitId/log',
       data: <String, dynamic>{'on': Formatters.isoDate(loggedOn)},
     );

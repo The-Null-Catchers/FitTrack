@@ -38,7 +38,8 @@ void main() {
       expect(pending.single.payload['weight_kg'], 82.4);
     });
 
-    test('re-queuing the same client id replaces rather than duplicates', () async {
+    test('re-queuing the same client id replaces rather than duplicates',
+        () async {
       await outbox.enqueue(
         clientUuid: 'weight-1',
         entity: 'body_weight',

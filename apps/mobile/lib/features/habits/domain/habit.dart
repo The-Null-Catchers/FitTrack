@@ -86,18 +86,21 @@ class Habit {
         color: json['color'] as String?,
         targetValue: (json['target_value'] as num?)?.toDouble(),
         unit: json['unit'] as String?,
-        activeWeekdays: ((json['active_weekdays'] as List<dynamic>?) ?? const <dynamic>[])
-            .map((dynamic item) => item as int)
-            .toList(),
+        activeWeekdays:
+            ((json['active_weekdays'] as List<dynamic>?) ?? const <dynamic>[])
+                .map((dynamic item) => item as int)
+                .toList(),
         reminderTime: json['reminder_time'] as String?,
         isArchived: json['is_archived'] as bool? ?? false,
         position: json['position'] as int? ?? 0,
         today: json['today'] == null
             ? null
             : HabitLog.fromJson(
-                Map<String, dynamic>.from(json['today'] as Map<dynamic, dynamic>),
+                Map<String, dynamic>.from(
+                    json['today'] as Map<dynamic, dynamic>),
               ),
-        completionRate30d: (json['completion_rate_30d'] as num?)?.toDouble() ?? 0,
+        completionRate30d:
+            (json['completion_rate_30d'] as num?)?.toDouble() ?? 0,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{

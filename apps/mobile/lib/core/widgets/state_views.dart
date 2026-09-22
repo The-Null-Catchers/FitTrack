@@ -79,7 +79,8 @@ class _SkeletonBoxState extends State<SkeletonBox>
           width: widget.width,
           height: widget.height,
           decoration: BoxDecoration(
-            color: base.withValues(alpha: animate ? 0.4 + _controller.value * 0.4 : 0.6),
+            color: base.withValues(
+                alpha: animate ? 0.4 + _controller.value * 0.4 : 0.6),
             borderRadius: BorderRadius.circular(widget.radius),
           ),
         );
@@ -193,10 +194,13 @@ class ErrorStateView extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             if (title != null) ...<Widget>[
-              Text(title!, style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
+              Text(title!,
+                  style: theme.textTheme.titleMedium,
+                  textAlign: TextAlign.center),
               const SizedBox(height: AppSpacing.sm),
             ],
-            Text(message, style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
+            Text(message,
+                style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
             if (onRetry != null) ...<Widget>[
               const SizedBox(height: AppSpacing.xl),
               FilledButton.tonalIcon(
@@ -239,12 +243,11 @@ class OfflineBanner extends StatelessWidget {
             Expanded(
               child: Text(
                 pendingChanges > 0
-                    ? l10n.t('syncPending', <String, Object?>{'count': pendingChanges})
+                    ? l10n.t('syncPending',
+                        <String, Object?>{'count': pendingChanges})
                     : l10n.t('syncOffline'),
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: colors.warning, fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.warning, fontWeight: FontWeight.w600),
               ),
             ),
           ],

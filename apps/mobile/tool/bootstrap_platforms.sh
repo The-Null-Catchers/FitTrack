@@ -25,6 +25,15 @@ if [[ ! -d android || ! -d ios ]]; then
     --platforms=android,ios \
     --no-overwrite \
     .
+
+  # `flutter create` fills in any file that is missing, which includes the
+  # counter-app scaffold test. This project has its own suite under test/ and
+  # no widget_test.dart, so the scaffold is generated every time and then fails
+  # to analyse (it references `MyApp`, which does not exist here). Drop it.
+  if [[ -f test/widget_test.dart ]] && grep -q 'MyApp' test/widget_test.dart; then
+    echo "Removing the generated scaffold test…"
+    rm test/widget_test.dart
+  fi
 else
   echo "Platform folders already present; leaving them alone."
 fi

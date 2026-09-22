@@ -15,13 +15,15 @@ import 'storage/secure_storage.dart';
 /// [appDatabaseProvider] and [appPreferencesProvider] are overridden in
 /// `main()` with instances opened before the first frame, so no screen has to
 /// handle "storage isn't ready yet". Tests override them with in-memory ones.
-final Provider<AppDatabase> appDatabaseProvider = Provider<AppDatabase>((Ref ref) {
+final Provider<AppDatabase> appDatabaseProvider =
+    Provider<AppDatabase>((Ref ref) {
   throw UnimplementedError('appDatabaseProvider must be overridden in main()');
 });
 
 final Provider<AppPreferences> appPreferencesProvider =
     Provider<AppPreferences>((Ref ref) {
-  throw UnimplementedError('appPreferencesProvider must be overridden in main()');
+  throw UnimplementedError(
+      'appPreferencesProvider must be overridden in main()');
 });
 
 final Provider<SecureStorage> secureStorageProvider =
@@ -43,7 +45,8 @@ final Provider<ConnectivityService> connectivityServiceProvider =
 
 /// Live online/offline state. Starts optimistic so the first frame doesn't
 /// flash an offline banner while the platform channel answers.
-final StreamProvider<bool> connectivityProvider = StreamProvider<bool>((Ref ref) {
+final StreamProvider<bool> connectivityProvider =
+    StreamProvider<bool>((Ref ref) {
   final ConnectivityService service = ref.watch(connectivityServiceProvider);
   return service.onStatusChange;
 });
@@ -56,7 +59,8 @@ final Provider<bool> isOnlineProvider = Provider<bool>((Ref ref) {
 });
 
 /// Raised when the refresh token is rejected; the router listens and redirects.
-final StateProvider<int> sessionExpiredTickProvider = StateProvider<int>((Ref ref) => 0);
+final StateProvider<int> sessionExpiredTickProvider =
+    StateProvider<int>((Ref ref) => 0);
 
 final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((Ref ref) {
   return ApiClient(

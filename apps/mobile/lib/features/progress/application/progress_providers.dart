@@ -60,12 +60,15 @@ final FutureProvider<List<BodyWeightEntry>> bodyWeightsProvider =
 
 final FutureProviderFamily<List<MeasurementEntry>, String?>
     measurementsProvider =
-    FutureProvider.family<List<MeasurementEntry>, String?>((Ref ref, String? type) {
+    FutureProvider.family<List<MeasurementEntry>, String?>(
+        (Ref ref, String? type) {
   return ref.watch(progressRepositoryProvider).measurements(type: type);
 });
 
-final FutureProviderFamily<List<ProgressPhoto>, String?> progressPhotosProvider =
-    FutureProvider.family<List<ProgressPhoto>, String?>((Ref ref, String? pose) {
+final FutureProviderFamily<List<ProgressPhoto>, String?>
+    progressPhotosProvider =
+    FutureProvider.family<List<ProgressPhoto>, String?>(
+        (Ref ref, String? pose) {
   return ref.watch(progressRepositoryProvider).photos(pose: pose);
 });
 
@@ -75,7 +78,8 @@ final FutureProvider<List<Exercise>> trainedExercisesProvider =
 });
 
 final FutureProviderFamily<ExerciseProgress, String> exerciseProgressProvider =
-    FutureProvider.family<ExerciseProgress, String>((Ref ref, String exerciseId) {
+    FutureProvider.family<ExerciseProgress, String>(
+        (Ref ref, String exerciseId) {
   return ref
       .watch(progressRepositoryProvider)
       .exerciseProgress(exerciseId, ref.watch(chartRangeProvider));

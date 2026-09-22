@@ -67,7 +67,8 @@ class RestTimerBar extends ConsumerWidget {
                   onPressed: () => controller.adjust(15),
                 ),
                 IconButton(
-                  onPressed: timer.isPaused ? controller.resume : controller.pause,
+                  onPressed:
+                      timer.isPaused ? controller.resume : controller.pause,
                   tooltip: timer.isPaused ? 'Resume' : 'Pause',
                   icon: Icon(
                     timer.isPaused

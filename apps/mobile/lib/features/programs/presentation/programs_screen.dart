@@ -106,7 +106,8 @@ class ProgramsScreen extends ConsumerWidget {
                             AppSpacing.screenPadding,
                             AppSpacing.md,
                           ),
-                          child: _ProgramCard(program: program, isTemplate: true),
+                          child:
+                              _ProgramCard(program: program, isTemplate: true),
                         ))
                     .toList(),
               ),
@@ -134,9 +135,8 @@ class _ProgramCard extends ConsumerWidget {
         Routes.programDetail,
         pathParameters: <String, String>{'id': program.id},
       ),
-      borderColor: program.isActive && !isTemplate
-          ? theme.colorScheme.primary
-          : null,
+      borderColor:
+          program.isActive && !isTemplate ? theme.colorScheme.primary : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -163,7 +163,8 @@ class _ProgramCard extends ConsumerWidget {
                 ),
               if (program.generatedByAi)
                 Padding(
-                  padding: const EdgeInsetsDirectional.only(start: AppSpacing.sm),
+                  padding:
+                      const EdgeInsetsDirectional.only(start: AppSpacing.sm),
                   child: Icon(
                     Icons.auto_awesome_rounded,
                     size: 16,
@@ -186,7 +187,9 @@ class _ProgramCard extends ConsumerWidget {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  '${l10n.t('programsDayCount', <String, Object?>{'count': program.dayCount})}'
+                  '${l10n.t('programsDayCount', <String, Object?>{
+                        'count': program.dayCount
+                      })}'
                   ' · ${program.exerciseCount} ${l10n.t('exercisesTitle').toLowerCase()}'
                   '${program.estimatedMinutes != null ? ' · ~${program.estimatedMinutes} min' : ''}',
                   style: theme.textTheme.labelSmall,
@@ -216,7 +219,8 @@ class _ProgramCard extends ConsumerWidget {
       await ref.read(programRepositoryProvider).activate(copy.id);
       invalidatePrograms(ref);
       if (context.mounted) {
-        AppToast.success(context, '${copy.name} · ${context.l10n.t('programsActive')}');
+        AppToast.success(
+            context, '${copy.name} · ${context.l10n.t('programsActive')}');
       }
     } on Object {
       if (context.mounted) {

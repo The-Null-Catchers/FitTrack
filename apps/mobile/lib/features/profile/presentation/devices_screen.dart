@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
-import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_toast.dart';
 import '../../../core/widgets/state_views.dart';
@@ -55,8 +54,7 @@ class DevicesScreen extends ConsumerWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 trailing: IconButton(
-                  onPressed: () =>
-                      _revoke(context, ref, '${session['id']}'),
+                  onPressed: () => _revoke(context, ref, '${session['id']}'),
                   tooltip: l10n.t('authSignOut'),
                   icon: const Icon(Icons.logout_rounded),
                 ),

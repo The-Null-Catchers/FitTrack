@@ -187,13 +187,15 @@ void main() {
       );
       await notifier.addSet(exercise.localId);
 
-      exercise = container.read(activeWorkoutProvider).session!.exercises.single;
+      exercise =
+          container.read(activeWorkoutProvider).session!.exercises.single;
       expect(exercise.sets.length, 4);
       expect(exercise.sets.last.weightKg, 82.5);
       expect(exercise.sets.last.setNumber, 4);
     });
 
-    test('a warm-up set starts empty rather than inheriting the load', () async {
+    test('a warm-up set starts empty rather than inheriting the load',
+        () async {
       final ActiveWorkoutController notifier = await controller();
       await notifier.start(program: _program, day: _program.days.first);
 
@@ -207,7 +209,8 @@ void main() {
       );
       await notifier.addSet(exercise.localId, setType: 'warmup');
 
-      exercise = container.read(activeWorkoutProvider).session!.exercises.single;
+      exercise =
+          container.read(activeWorkoutProvider).session!.exercises.single;
       expect(exercise.sets.last.setType, 'warmup');
       expect(exercise.sets.last.weightKg, isNull);
     });
@@ -220,7 +223,8 @@ void main() {
           container.read(activeWorkoutProvider).session!.exercises.single;
       await notifier.removeSet(exercise.localId, exercise.sets.first.localId);
 
-      exercise = container.read(activeWorkoutProvider).session!.exercises.single;
+      exercise =
+          container.read(activeWorkoutProvider).session!.exercises.single;
       expect(exercise.sets.length, 2);
       expect(
         exercise.sets.map((WorkoutSet set) => set.setNumber).toList(),

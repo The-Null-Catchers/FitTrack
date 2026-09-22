@@ -52,9 +52,8 @@ class WeightLogScreen extends ConsumerWidget {
               final BodyWeightEntry entry = ordered[index];
               final BodyWeightEntry? previous =
                   index + 1 < ordered.length ? ordered[index + 1] : null;
-              final double? delta = previous == null
-                  ? null
-                  : entry.weightKg - previous.weightKg;
+              final double? delta =
+                  previous == null ? null : entry.weightKg - previous.weightKg;
 
               return ListTile(
                 title: Text(
@@ -114,8 +113,7 @@ class WeightLogScreen extends ConsumerWidget {
                   const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
                 labelText: l10n.t('progressWeight'),
-                suffixText:
-                    imperial ? l10n.t('commonLb') : l10n.t('commonKg'),
+                suffixText: imperial ? l10n.t('commonLb') : l10n.t('commonKg'),
               ),
             ),
             const SizedBox(height: AppSpacing.xl),

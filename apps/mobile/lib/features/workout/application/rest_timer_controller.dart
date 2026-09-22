@@ -29,8 +29,9 @@ class RestTimerState {
 
   bool get isFinished => isActive && remainingSeconds <= 0;
 
-  double get progress =>
-      totalSeconds == 0 ? 0 : (1 - remainingSeconds / totalSeconds).clamp(0.0, 1.0);
+  double get progress => totalSeconds == 0
+      ? 0
+      : (1 - remainingSeconds / totalSeconds).clamp(0.0, 1.0);
 
   RestTimerState copyWith({
     bool? isRunning,

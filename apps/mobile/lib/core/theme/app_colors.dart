@@ -149,5 +149,6 @@ class FitColorsExtension extends ThemeExtension<FitColorsExtension> {
 /// `context.fitColors` instead of the full `Theme.of(context).extension<…>()!`.
 extension FitColorsContext on BuildContext {
   FitColorsExtension get fitColors =>
-      Theme.of(this).extension<FitColorsExtension>() ?? FitColorsExtension.light;
+      Theme.of(this).extension<FitColorsExtension>() ??
+      FitColorsExtension.light;
 }

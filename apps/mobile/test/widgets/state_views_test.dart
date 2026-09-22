@@ -2,16 +2,20 @@ import 'package:fittrack/core/localization/app_localizations.dart';
 import 'package:fittrack/core/theme/app_theme.dart';
 import 'package:fittrack/core/widgets/state_views.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Widget _wrap(Widget child, {Locale locale = const Locale('en')}) {
   return MaterialApp(
     locale: locale,
     theme: AppTheme.light(),
+    // Mirrors the delegates app.dart installs. The Default* delegates only
+    // cover English, so a non-English locale would silently stay left-to-right.
     localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
       AppLocalizations.delegate,
-      DefaultMaterialLocalizations.delegate,
-      DefaultWidgetsLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
     ],
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(body: child),
@@ -19,7 +23,8 @@ Widget _wrap(Widget child, {Locale locale = const Locale('en')}) {
 }
 
 void main() {
-  testWidgets('empty state shows its title and message', (WidgetTester tester) async {
+  testWidgets('empty state shows its title and message',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       _wrap(
         const EmptyStateView(
@@ -37,7 +42,8 @@ void main() {
     );
   });
 
-  testWidgets('error state offers a retry and calls back', (WidgetTester tester) async {
+  testWidgets('error state offers a retry and calls back',
+      (WidgetTester tester) async {
     int retries = 0;
     await tester.pumpWidget(
       _wrap(
@@ -93,10 +99,12 @@ void main() {
     await tester.pumpAndSettle();
 
     final Directionality directionality = tester.widget<Directionality>(
-      find.descendant(
-        of: find.byType(MaterialApp),
-        matching: find.byType(Directionality),
-      ).first,
+      find
+          .descendant(
+            of: find.byType(MaterialApp),
+            matching: find.byType(Directionality),
+          )
+          .first,
     );
     expect(directionality.textDirection, TextDirection.rtl);
   });

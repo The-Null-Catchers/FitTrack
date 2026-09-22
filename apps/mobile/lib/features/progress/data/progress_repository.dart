@@ -160,7 +160,8 @@ class ProgressRepository {
       if (weightKg != null) 'weight_kg': weightKg,
       if (note != null && note.isNotEmpty) 'note': note,
     });
-    final Map<String, dynamic> body = await _client.upload<Map<String, dynamic>>(
+    final Map<String, dynamic> body =
+        await _client.upload<Map<String, dynamic>>(
       '/api/v1/progress/photos',
       form,
     );
@@ -211,7 +212,8 @@ class ProgressRepository {
     return ChartData.fromJson(body);
   }
 
-  Future<ExerciseProgress> exerciseProgress(String exerciseId, String range) async {
+  Future<ExerciseProgress> exerciseProgress(
+      String exerciseId, String range) async {
     final Map<String, dynamic> body = await _client.get<Map<String, dynamic>>(
       '/api/v1/progress/exercises/$exerciseId',
       query: <String, dynamic>{'range': range},

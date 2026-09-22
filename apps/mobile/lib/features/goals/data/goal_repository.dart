@@ -19,23 +19,23 @@ class GoalRepository {
         await _cache.write(CacheDao.goalsKey, body);
       }
       return body
-          .map((dynamic item) =>
-              Goal.fromJson(Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
+          .map((dynamic item) => Goal.fromJson(
+              Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
           .toList();
     } on ApiException catch (error) {
       if (!error.isConnectivity) rethrow;
       final CachedDocument? cached = await _cache.read(CacheDao.goalsKey);
       if (cached == null) rethrow;
       return cached.asList
-          .map((dynamic item) =>
-              Goal.fromJson(Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
+          .map((dynamic item) => Goal.fromJson(
+              Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
           .toList();
     }
   }
 
   Future<Goal> create(Map<String, dynamic> payload) async {
-    final Map<String, dynamic> body =
-        await _client.post<Map<String, dynamic>>('/api/v1/goals', data: payload);
+    final Map<String, dynamic> body = await _client
+        .post<Map<String, dynamic>>('/api/v1/goals', data: payload);
     await _cache.delete(CacheDao.goalsKey);
     return Goal.fromJson(body);
   }
