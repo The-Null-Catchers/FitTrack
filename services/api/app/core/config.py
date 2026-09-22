@@ -6,11 +6,12 @@ All runtime configuration lives here. Nothing in the codebase should read
 
 from __future__ import annotations
 
+import json
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -51,7 +52,11 @@ class Settings(BaseSettings):
     RATE_LIMIT_AI: str = "30/hour"
 
     # --- CORS ----------------------------------------------------------
-    CORS_ORIGINS: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    # NoDecode: pydantic-settings would otherwise JSON-decode this in the env
+    # source, before _split_csv runs, so a comma-separated value would raise.
+    CORS_ORIGINS: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["http://localhost:3000"]
+    )
 
     # --- storage -------------------------------------------------------
     STORAGE_BACKEND: Literal["local", "s3"] = "local"
@@ -65,7 +70,7 @@ class Settings(BaseSettings):
     S3_USE_PATH_STYLE: bool = True
     SIGNED_URL_TTL_SECONDS: int = 900
     MAX_UPLOAD_BYTES: int = 10 * 1024 * 1024
-    ALLOWED_IMAGE_TYPES: list[str] = Field(
+    ALLOWED_IMAGE_TYPES: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["image/jpeg", "image/png", "image/webp", "image/heic"]
     )
 
@@ -98,8 +103,11 @@ class Settings(BaseSettings):
     @classmethod
     def _split_csv(cls, value: object) -> object:
         """Allow comma-separated env values as well as JSON lists."""
-        if isinstance(value, str) and not value.strip().startswith("["):
-            return [item.strip() for item in value.split(",") if item.strip()]
+        if isinstance(value, str):
+            text = value.strip()
+            if text.startswith("["):
+                return json.loads(text)
+            return [item.strip() for item in text.split(",") if item.strip()]
         return value
 
     @property

@@ -28,7 +28,21 @@ except Exception:
     echo "Waiting for the database (${i}/${attempts})..."
     sleep 2
   done
-  echo "Database did not become available in time." >&2
+  # Re-run once with stderr shown: the loop above hides it, so a configuration
+  # error that can never succeed is otherwise indistinguishable from a database
+  # that is simply slow to accept connections.
+  echo "Database did not become available in time. Last error:" >&2
+  python -c "
+import asyncio
+from sqlalchemy import text
+from app.db.session import engine
+
+async def check() -> None:
+    async with engine.connect() as connection:
+        await connection.execute(text('SELECT 1'))
+
+asyncio.run(check())
+" >&2 || true
   return 1
 }
 
