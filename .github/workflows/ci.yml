@@ -251,6 +251,14 @@ jobs:
     name: Acceptance — full stack walk-through
     runs-on: ubuntu-latest
     needs: [api, admin]
+    env:
+      # Serve media through the API rather than MinIO. The photo checks follow
+      # a signed URL from outside the compose network, and a MinIO presigned
+      # URL is signed for http://minio:9000 — a hostname that only resolves
+      # between the containers, so no external client can follow it. Overrides
+      # the value in .env.example for this job only; the s3 backend is still
+      # covered by the API unit tests and by `docker compose config`.
+      STORAGE_BACKEND: local
     steps:
       - uses: actions/checkout@v4
 
