@@ -31,6 +31,17 @@ services:
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS is required}
       WEB_CONCURRENCY: ${WEB_CONCURRENCY:-4}
+      # Public address of object storage, written into the URLs clients get.
+      # The development default (localhost:9000) must not leak into production,
+      # so it is passed through explicitly and defaults to empty, which falls
+      # back to S3_ENDPOINT. Set it when STORAGE_BACKEND=s3: presigned URLs are
+      # signed for the host they name, so it has to be one clients can reach.
+      # For the bundled MinIO, that address is this deployment's own origin:
+      # nginx proxies the bucket path straight through (see infra/nginx),
+      # so https://your-host is the right value. An external S3-compatible
+      # service works too — use its public endpoint. Leave it empty only when
+      # S3_ENDPOINT is already client-reachable.
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
     restart: always
     deploy:
       resources:
@@ -45,6 +56,8 @@ services:
       DEBUG: "false"
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      # As above: the worker mints media URLs too, so it needs the same value.
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
     restart: always
 
   admin:
@@ -63,6 +76,9 @@ services:
       - ../nginx/proxy_params.conf:/etc/nginx/proxy_params.conf:ro
       - ${TLS_CERT_DIR:-./certs}:/etc/nginx/certs:ro
     depends_on:
+      # nginx resolves its upstreams when it loads the config, so minio has to
+      # exist before it starts or it exits with "host not found in upstream".
       - api
       - admin
+      - minio
     restart: always

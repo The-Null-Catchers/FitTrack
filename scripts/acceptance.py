@@ -146,10 +146,16 @@ with httpx.Client(timeout=30) as c:
                data={"taken_on": str(date.today()), "pose": "front", "weight_kg": "83.2"})
     check("upload a progress photo", r.status_code == 201, r.text[:200])
     photo = r.json()
-    check("served through a signed URL", "signature=" in (photo["url"] or ""))
-    path = photo["url"].split(BASE, 1)[-1]
-    check("signed URL resolves", c.get(f"{BASE}{path}").status_code == 200)
-    check("unsigned URL is refused", c.get(f"{BASE}{path.split('?')[0]}").status_code == 403)
+    # Both backends hand back an absolute URL, signed differently: the local one
+    # with ?expires=&signature=, s3 with SigV4's X-Amz-Signature. Lowercasing
+    # matches either. An s3 URL points at storage rather than the API, so follow
+    # whatever came back instead of rebuilding it from BASE.
+    url = photo["url"] or ""
+    check("served through a signed URL", "signature=" in url.lower())
+    check("signed URL resolves", c.get(url).status_code == 200)
+    # progress-photos/ is never granted anonymous download, so stripping the
+    # signature has to be refused — by the API's /media route, or by storage.
+    check("unsigned URL is refused", c.get(url.split("?")[0]).status_code == 403)
 
     print("\n== 13. goals ==")
     r = c.post(f"{V1}/goals", headers=H, json={

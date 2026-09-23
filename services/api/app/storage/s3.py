@@ -22,11 +22,10 @@ class S3StorageProvider(StorageProvider):
     def __init__(self, bucket: str | None = None) -> None:
         self.bucket = bucket or settings.S3_BUCKET
 
-    @cached_property
-    def client(self) -> Any:
+    def _client_for(self, endpoint: str) -> Any:
         return boto3.client(
             "s3",
-            endpoint_url=settings.S3_ENDPOINT or None,
+            endpoint_url=endpoint or None,
             region_name=settings.S3_REGION,
             aws_access_key_id=settings.S3_ACCESS_KEY or None,
             aws_secret_access_key=settings.S3_SECRET_KEY or None,
@@ -36,6 +35,25 @@ class S3StorageProvider(StorageProvider):
                 retries={"max_attempts": 3, "mode": "standard"},
             ),
         )
+
+    @cached_property
+    def client(self) -> Any:
+        """Client for operations the API performs itself, over the internal address."""
+        return self._client_for(settings.S3_ENDPOINT)
+
+    @cached_property
+    def url_client(self) -> Any:
+        """Client used only to mint URLs for clients outside the network.
+
+        A SigV4 presigned URL carries `X-Amz-SignedHeaders=host`, so the host is
+        part of what gets signed: rewriting the origin of an already-signed URL
+        invalidates it. The public address therefore has to be the endpoint the
+        URL is signed *against*, which means a second client. Presigning is
+        computed locally and opens no connection, so this one never dials out.
+        """
+        if not settings.S3_PUBLIC_ENDPOINT:
+            return self.client
+        return self._client_for(settings.S3_PUBLIC_ENDPOINT)
 
     async def put(
         self, key: str, data: bytes, content_type: str, *, visibility: str = PRIVATE
@@ -76,14 +94,14 @@ class S3StorageProvider(StorageProvider):
         return True
 
     def signed_url(self, key: str, *, expires_in: int | None = None) -> str:
-        return self.client.generate_presigned_url(
+        return self.url_client.generate_presigned_url(
             "get_object",
             Params={"Bucket": self.bucket, "Key": key},
             ExpiresIn=expires_in or settings.SIGNED_URL_TTL_SECONDS,
         )
 
     def public_url(self, key: str) -> str:
-        endpoint = settings.S3_ENDPOINT.rstrip("/")
+        endpoint = (settings.S3_PUBLIC_ENDPOINT or settings.S3_ENDPOINT).rstrip("/")
         return f"{endpoint}/{self.bucket}/{key}"
 
     async def health(self) -> str:

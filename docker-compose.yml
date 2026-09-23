@@ -17,6 +17,9 @@ x-api-env: &api-env
   APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://localhost:3000}
   STORAGE_BACKEND: ${STORAGE_BACKEND:-s3}
   S3_ENDPOINT: http://minio:9000
+  # Presigned URLs are signed for the host they name, and `minio` resolves only
+  # between these containers. Clients get the published address instead.
+  S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:${MINIO_PORT:-9000}}
   S3_BUCKET: ${S3_BUCKET:-fittrack}
   S3_ACCESS_KEY: ${S3_ACCESS_KEY:-fittrack}
   S3_SECRET_KEY: ${S3_SECRET_KEY:-fittrack-dev-secret}

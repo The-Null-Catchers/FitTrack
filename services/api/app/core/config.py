@@ -62,7 +62,13 @@ class Settings(BaseSettings):
     STORAGE_BACKEND: Literal["local", "s3"] = "local"
     STORAGE_LOCAL_PATH: str = "./var/storage"
     STORAGE_PUBLIC_BASE_URL: str = "http://localhost:8000/media"
+    # Address the API dials to reach object storage, server to server.
     S3_ENDPOINT: str = "http://localhost:9000"
+    # Address baked into the URLs handed to clients. Set this when storage is
+    # reachable at a name that only resolves inside the network — the compose
+    # stack talks to `minio:9000`, which no browser or phone can resolve.
+    # Empty means the two are the same, which is right for AWS S3 or R2.
+    S3_PUBLIC_ENDPOINT: str = ""
     S3_REGION: str = "us-east-1"
     S3_BUCKET: str = "fittrack"
     S3_ACCESS_KEY: str = ""
