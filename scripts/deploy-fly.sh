@@ -16,7 +16,14 @@ ORG="${FLY_ORG:-personal}"
 VOLUME="fittrack_storage"
 API_DIR="$(cd "$(dirname "$0")/../services/api" && pwd)"
 
-command -v fly >/dev/null || { echo "fly not on PATH" >&2; exit 1; }
+# The release tarball — and so setup-flyctl in CI — ships the binary as
+# `flyctl` only; the `fly` name is a symlink that Fly's install.sh adds for
+# local use. Resolve whichever exists and call it through a wrapper, so the
+# `fly ...` calls below work in both places.
+FLY_BIN="$(command -v flyctl || command -v fly || true)"
+[[ -n "$FLY_BIN" ]] || { echo "neither flyctl nor fly is on PATH" >&2; exit 1; }
+fly() { command "$FLY_BIN" "$@"; }
+
 [[ -n "${FLY_API_TOKEN:-}" ]] || { echo "FLY_API_TOKEN is not set" >&2; exit 1; }
 
 cd "$API_DIR"
