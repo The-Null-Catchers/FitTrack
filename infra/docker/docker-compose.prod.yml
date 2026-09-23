@@ -36,10 +36,11 @@ services:
       # so it is passed through explicitly and defaults to empty, which falls
       # back to S3_ENDPOINT. Set it when STORAGE_BACKEND=s3: presigned URLs are
       # signed for the host they name, so it has to be one clients can reach.
-      # Note the bundled MinIO publishes no ports here and nginx does not route
-      # to it, so serving media from it needs a public route you add. Either use
-      # an external S3-compatible service, or STORAGE_BACKEND=local, which nginx
-      # already serves through /media.
+      # For the bundled MinIO, that address is this deployment's own origin:
+      # nginx proxies the bucket path straight through (see infra/nginx),
+      # so https://your-host is the right value. An external S3-compatible
+      # service works too — use its public endpoint. Leave it empty only when
+      # S3_ENDPOINT is already client-reachable.
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
     restart: always
     deploy:
@@ -75,6 +76,9 @@ services:
       - ../nginx/proxy_params.conf:/etc/nginx/proxy_params.conf:ro
       - ${TLS_CERT_DIR:-./certs}:/etc/nginx/certs:ro
     depends_on:
+      # nginx resolves its upstreams when it loads the config, so minio has to
+      # exist before it starts or it exits with "host not found in upstream".
       - api
       - admin
+      - minio
     restart: always
