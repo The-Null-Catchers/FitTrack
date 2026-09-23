@@ -1,0 +1,199 @@
+name: Deploy to Fly
+
+# Manual only. Deploying provisions billable resources and can reseed a live
+# database, so it never runs off a push.
+on:
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: "Fly app name (also the hostname: <app>.fly.dev)"
+        required: true
+        default: "fittrack-api"
+      region:
+        description: "Fly region"
+        required: true
+        default: "iad"
+      seed_demo:
+        description: "Seed the demo account (SYNTHETIC data, known password — test instances only)"
+        type: boolean
+        required: true
+        default: true
+      build_apk:
+        description: "Build a release APK pointed at the deployed URL"
+        type: boolean
+        required: true
+        default: true
+
+# One deploy at a time: concurrent runs would race on migrations and secrets.
+concurrency:
+  group: deploy-fly-${{ inputs.app_name }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: "3.27.4"
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.deployed.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned to a commit, not a branch: this is the one job that holds
+      # FLY_API_TOKEN, so an upstream change should not land here unreviewed.
+      # ed8efb3 is release 1.6, what `@master` resolved to.
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1
+
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          FLY_APP: ${{ inputs.app_name }}
+          FLY_REGION: ${{ inputs.region }}
+          SEED_DEMO: ${{ inputs.seed_demo }}
+        run: ./scripts/deploy-fly.sh
+
+      # Inputs reach these scripts through `env`, never by ${{ }} substitution
+      # into the shell text, so an input cannot become part of the command.
+      - name: Record the URL
+        id: deployed
+        env:
+          APP_NAME: ${{ inputs.app_name }}
+        run: echo "url=https://${APP_NAME}.fly.dev" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        env:
+          APP_NAME: ${{ inputs.app_name }}
+          REGION: ${{ inputs.region }}
+          SEED_DEMO: ${{ inputs.seed_demo }}
+        run: |
+          {
+            echo "## Deployed"
+            echo ""
+            echo "- URL: https://${APP_NAME}.fly.dev"
+            echo "- Region: \`${REGION}\`"
+            echo "- Demo account seeded: \`${SEED_DEMO}\`"
+            echo "- FitCoach: **mock provider** — \`/ai/*\` returns canned text."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  verify:
+    name: Verify the deployment
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the acceptance dependencies
+        run: pip install httpx pillow
+
+      - name: Health
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.url }}
+        run: curl -fsS "${BASE_URL}/health"
+
+      - name: Acceptance suite
+        id: acceptance
+        # The script reads FITTRACK_URL from the environment; it takes no
+        # --base-url flag and would silently fall back to localhost.
+        env:
+          FITTRACK_URL: ${{ needs.deploy.outputs.url }}
+        run: python scripts/acceptance.py | tee acceptance.log
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: acceptance-log
+          path: acceptance.log
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Acceptance"
+            echo ""
+            echo '```'
+            tail -5 acceptance.log 2>/dev/null || echo "no log produced"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  apk:
+    name: Build the APK
+    needs: [deploy, verify]
+    if: ${{ inputs.build_apk }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Generate the platform folders
+        run: ./tool/bootstrap_platforms.sh
+
+      - name: Install
+        run: flutter pub get
+
+      # Drives the app's own deserializers over live payloads from the
+      # deployment, so an app/API contract drift fails here rather than on a
+      # phone. Inert without LIVE_API.
+      - name: Contract tests against the deployment
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.url }}
+        run: |
+          flutter test test/contract/live_api_contract_test.dart \
+            --dart-define=LIVE_API=true \
+            --dart-define=API_BASE_URL="${BASE_URL}"
+
+      # Signed with the debug key: installable for testing, NOT for any store.
+      - name: Build
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.url }}
+        run: |
+          flutter build apk --release \
+            --dart-define=API_BASE_URL="${BASE_URL}"
+
+      - name: Name the artifact after the target
+        env:
+          APP_NAME: ${{ inputs.app_name }}
+        run: |
+          mv build/app/outputs/flutter-apk/app-release.apk \
+             "build/app/outputs/flutter-apk/fittrack-${APP_NAME}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fittrack-apk
+          path: apps/mobile/build/app/outputs/flutter-apk/fittrack-${{ inputs.app_name }}.apk
+          retention-days: 14
+
+      - name: Summary
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.url }}
+          SEED_DEMO: ${{ inputs.seed_demo }}
+        run: |
+          {
+            echo "## APK"
+            echo ""
+            echo "- Points at: ${BASE_URL}"
+            echo "- Download it from this run's **Artifacts** section: \`fittrack-apk\`"
+            echo "- Debug-signed test build. Enable install-from-unknown-sources to sideload."
+            if [ "${SEED_DEMO}" = "true" ]; then
+              echo "- Sign in: \`demo@fittrack.app\` / \`FitTrack2024!\` (synthetic data)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
