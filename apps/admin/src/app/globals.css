@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens. Every colour in the dashboard resolves through one of these
+ * semantic names, so dark mode is a variable swap rather than a second set of
+ * classes — and no component hard-codes a colour.
+ */
+@layer base {
+  :root {
+    --background: 220 20% 97%;
+    --surface: 0 0% 100%;
+    --surface-raised: 0 0% 100%;
+    --border: 220 14% 90%;
+    --foreground: 222 30% 12%;
+    --muted: 220 9% 46%;
+
+    --primary: 243 75% 59%;
+    --primary-foreground: 0 0% 100%;
+    --primary-subtle: 243 100% 96%;
+
+    --success: 152 69% 34%;
+    --warning: 38 92% 45%;
+    --danger: 0 72% 51%;
+    --info: 212 92% 45%;
+  }
+
+  .dark {
+    --background: 224 26% 8%;
+    --surface: 224 22% 11%;
+    --surface-raised: 224 20% 14%;
+    --border: 223 16% 22%;
+    --foreground: 220 20% 96%;
+    --muted: 220 10% 64%;
+
+    --primary: 243 82% 70%;
+    --primary-foreground: 224 30% 10%;
+    --primary-subtle: 243 40% 20%;
+
+    --success: 152 55% 48%;
+    --warning: 38 88% 58%;
+    --danger: 0 72% 63%;
+    --info: 212 85% 62%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Visible focus for keyboard users, without a ring on mouse clicks. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer utilities {
+  .skeleton {
+    @apply relative overflow-hidden rounded bg-border/60;
+  }
+
+  .skeleton::after {
+    @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-surface/70 to-transparent;
+    content: "";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

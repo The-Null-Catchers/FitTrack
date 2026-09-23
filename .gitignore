@@ -1,0 +1,59 @@
+# --- python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.egg-info/
+build/
+dist/
+
+# --- node / next ---
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# --- flutter / dart ---
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+*.iml
+.pub-cache/
+.pub/
+**/ios/Pods/
+**/ios/.symlinks/
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+**/android/app/*.jks
+**/android/app/*.keystore
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+coverage/
+
+# --- secrets & local state ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+services/api/var/
+var/storage/
+
+# --- os / editors ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
