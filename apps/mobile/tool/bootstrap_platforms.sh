@@ -83,4 +83,54 @@ path.write_text(text.replace(marker, entries + marker))
 PY
 fi
 
+WRAPPER="android/gradle/wrapper/gradle-wrapper.properties"
+if [[ -f "$WRAPPER" ]] && grep -q 'gradle-8\.3-all\.zip' "$WRAPPER"; then
+  echo "Bumping the Gradle wrapper to 8.7…"
+  # `flutter create` scaffolds Gradle 8.3, which predates Java 21 support.
+  # Java 21 is the default JDK on current runners and dev machines, and Flutter
+  # itself reports the compatible range here as 8.4-8.7, so the scaffolded
+  # version fails the build before it starts. 8.7 is the top of that range.
+  sed -i 's|gradle-8\.3-all\.zip|gradle-8.7-all.zip|' "$WRAPPER"
+fi
+
+SETTINGS="android/settings.gradle"
+if [[ -f "$SETTINGS" ]] && grep -q 'com.android.application" version "8\.1\.0"' "$SETTINGS"; then
+  echo "Bumping the Android Gradle Plugin to 8.6.0…"
+  # AGP below 8.2.1 cannot build against Java 21: jlink fails transforming
+  # core-for-system-modules.jar whenever sourceCompatibility is set, which
+  # every Flutter plugin does. See https://issuetracker.google.com/issues/294137077.
+  # Kotlin moves with it — 1.8.22 predates the AGP 8.6 metadata format.
+  sed -i 's|com.android.application" version "8\.1\.0"|com.android.application" version "8.6.0"|' "$SETTINGS"
+  sed -i 's|org.jetbrains.kotlin.android" version "1\.8\.22"|org.jetbrains.kotlin.android" version "1.9.24"|' "$SETTINGS"
+fi
+
+APP_GRADLE="android/app/build.gradle"
+if [[ -f "$APP_GRADLE" ]] && ! grep -q 'coreLibraryDesugaringEnabled' "$APP_GRADLE"; then
+  echo "Enabling core library desugaring…"
+  # flutter_local_notifications schedules with java.time, so it requires core
+  # library desugaring; without it the build stops at checkDebugAarMetadata.
+  python3 - "$APP_GRADLE" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+text = path.read_text()
+
+text = text.replace(
+    "    compileOptions {\n",
+    "    compileOptions {\n        coreLibraryDesugaringEnabled = true\n",
+    1,
+)
+
+# The Flutter template ends with the `flutter { source = "../.." }` block; the
+# desugaring artifact has to land in a top-level dependencies block after it.
+text = text.rstrip() + (
+    "\n\ndependencies {\n"
+    '    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"\n'
+    "}\n"
+)
+path.write_text(text)
+PY
+fi
+
 echo "Done. Next: flutter pub get && flutter run"
