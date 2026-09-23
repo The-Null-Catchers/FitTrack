@@ -31,7 +31,7 @@ Three jobs run in order, and each stops the next if it fails:
 1. **Deploy** — creates the app, an unmanaged Postgres cluster, an Upstash Redis
    database and a 3 GB volume; generates `JWT_SECRET` and `STORAGE_SIGNING_KEY`
    and sets them with `fly secrets`; deploys with `--remote-only`; seeds.
-2. **Verify** — health check, then the 75-check acceptance walk against the
+2. **Verify** — health check, then the full acceptance walk against the
    deployed URL. The log is uploaded as the `acceptance-log` artifact.
 3. **APK** — runs the live contract tests against the deployment, then builds
    the release APK with `--dart-define=API_BASE_URL=https://<app>.fly.dev`.

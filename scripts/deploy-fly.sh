@@ -50,17 +50,37 @@ fi
 # the async driver in the DSN (config.py reads DATABASE_URL directly and
 # strips +asyncpg only for Alembic). Attach, then rewrite the scheme.
 step "Attaching Postgres"
+ATTACH_DSN=""
 if fly secrets list --app "$APP" 2>/dev/null | grep -q '^DATABASE_URL'; then
   echo "DATABASE_URL already set."
 else
-  fly postgres attach "$PG_APP" --app "$APP" --yes
+  # The attach output carries the DSN *including its password*, so it is
+  # captured rather than streamed — printing it would put the database
+  # password in the job log. Only the scheme is echoed, below.
+  if ! ATTACH_OUT="$(fly postgres attach "$PG_APP" --app "$APP" --yes 2>&1)"; then
+    echo "fly postgres attach failed:" >&2
+    printf '%s\n' "$ATTACH_OUT" |
+      sed -E 's#(postgres(ql)?://)[^[:space:]]*#\1[redacted]#g' >&2
+    exit 1
+  fi
+  echo "Attached $PG_APP."
+  # Taking the DSN from the attach output is what makes a first run work: the
+  # fallback below needs a booted machine, and on a brand-new app there is
+  # none until the deploy further down.
+  ATTACH_DSN="$(printf '%s' "$ATTACH_OUT" |
+    grep -oE 'postgres(ql)?://[^[:space:]]+' | head -1 || true)"
 fi
 
 step "Rewriting DATABASE_URL for asyncpg"
-RAW_DSN="$(fly ssh console --app "$APP" -C 'printenv DATABASE_URL' 2>/dev/null | tr -d '\r' || true)"
+RAW_DSN="$ATTACH_DSN"
 if [[ -z "$RAW_DSN" ]]; then
-  echo "Could not read DATABASE_URL from a running machine." >&2
-  echo "Set it by hand once the app has booted:" >&2
+  # Attached on an earlier run, so read it back from a running machine.
+  RAW_DSN="$(fly ssh console --app "$APP" -C 'printenv DATABASE_URL' 2>/dev/null | tr -d '\r' || true)"
+fi
+if [[ -z "$RAW_DSN" ]]; then
+  echo "Could not read DATABASE_URL: it is already set, but no running" >&2
+  echo "machine could be reached to read it back. If the app is failing to" >&2
+  echo "boot on a postgres:// DSN, set the async scheme by hand:" >&2
   echo "  fly secrets set --app $APP DATABASE_URL='postgresql+asyncpg://…'" >&2
 else
   case "$RAW_DSN" in
@@ -78,7 +98,14 @@ step "Redis (persistent)"
 if fly redis list 2>/dev/null | grep -q "$REDIS_NAME"; then
   echo "$REDIS_NAME already exists."
 else
-  fly redis create --name "$REDIS_NAME" --org "$ORG" --region "$REGION" --no-replicas
+  # Captured for the same reason as the Postgres attach: `redis create` prints
+  # the connection URL with its password.
+  if ! REDIS_OUT="$(fly redis create --name "$REDIS_NAME" --org "$ORG" --region "$REGION" --no-replicas 2>&1)"; then
+    echo "fly redis create failed:" >&2
+    printf '%s\n' "$REDIS_OUT" | sed -E 's#(redis://)[^[:space:]]*#\1[redacted]#g' >&2
+    exit 1
+  fi
+  echo "Created $REDIS_NAME."
 fi
 REDIS_URL="$(fly redis status "$REDIS_NAME" 2>/dev/null | grep -oE 'redis://[^ ]+' | head -1 || true)"
 if [[ -n "$REDIS_URL" ]]; then

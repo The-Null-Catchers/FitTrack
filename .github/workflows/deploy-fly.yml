@@ -42,7 +42,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      # Pinned to a commit, not a branch: this is the one job that holds
+      # FLY_API_TOKEN, so an upstream change should not land here unreviewed.
+      # ed8efb3 is release 1.6, what `@master` resolved to.
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1
 
       - name: Deploy
         env:
@@ -52,18 +55,26 @@ jobs:
           SEED_DEMO: ${{ inputs.seed_demo }}
         run: ./scripts/deploy-fly.sh
 
+      # Inputs reach these scripts through `env`, never by ${{ }} substitution
+      # into the shell text, so an input cannot become part of the command.
       - name: Record the URL
         id: deployed
-        run: echo "url=https://${{ inputs.app_name }}.fly.dev" >> "$GITHUB_OUTPUT"
+        env:
+          APP_NAME: ${{ inputs.app_name }}
+        run: echo "url=https://${APP_NAME}.fly.dev" >> "$GITHUB_OUTPUT"
 
       - name: Summary
+        env:
+          APP_NAME: ${{ inputs.app_name }}
+          REGION: ${{ inputs.region }}
+          SEED_DEMO: ${{ inputs.seed_demo }}
         run: |
           {
             echo "## Deployed"
             echo ""
-            echo "- URL: https://${{ inputs.app_name }}.fly.dev"
-            echo "- Region: \`${{ inputs.region }}\`"
-            echo "- Demo account seeded: \`${{ inputs.seed_demo }}\`"
+            echo "- URL: https://${APP_NAME}.fly.dev"
+            echo "- Region: \`${REGION}\`"
+            echo "- Demo account seeded: \`${SEED_DEMO}\`"
             echo "- FitCoach: **mock provider** — \`/ai/*\` returns canned text."
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -82,7 +93,9 @@ jobs:
         run: pip install httpx pillow
 
       - name: Health
-        run: curl -fsS "${{ needs.deploy.outputs.url }}/health"
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.url }}
+        run: curl -fsS "${BASE_URL}/health"
 
       - name: Acceptance suite
         id: acceptance
@@ -141,21 +154,27 @@ jobs:
       # deployment, so an app/API contract drift fails here rather than on a
       # phone. Inert without LIVE_API.
       - name: Contract tests against the deployment
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.url }}
         run: |
           flutter test test/contract/live_api_contract_test.dart \
             --dart-define=LIVE_API=true \
-            --dart-define=API_BASE_URL=${{ needs.deploy.outputs.url }}
+            --dart-define=API_BASE_URL="${BASE_URL}"
 
       # Signed with the debug key: installable for testing, NOT for any store.
       - name: Build
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.url }}
         run: |
           flutter build apk --release \
-            --dart-define=API_BASE_URL=${{ needs.deploy.outputs.url }}
+            --dart-define=API_BASE_URL="${BASE_URL}"
 
       - name: Name the artifact after the target
+        env:
+          APP_NAME: ${{ inputs.app_name }}
         run: |
           mv build/app/outputs/flutter-apk/app-release.apk \
-             "build/app/outputs/flutter-apk/fittrack-${{ inputs.app_name }}.apk"
+             "build/app/outputs/flutter-apk/fittrack-${APP_NAME}.apk"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -164,14 +183,17 @@ jobs:
           retention-days: 14
 
       - name: Summary
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.url }}
+          SEED_DEMO: ${{ inputs.seed_demo }}
         run: |
           {
             echo "## APK"
             echo ""
-            echo "- Points at: ${{ needs.deploy.outputs.url }}"
+            echo "- Points at: ${BASE_URL}"
             echo "- Download it from this run's **Artifacts** section: \`fittrack-apk\`"
             echo "- Debug-signed test build. Enable install-from-unknown-sources to sideload."
-            if [ "${{ inputs.seed_demo }}" = "true" ]; then
+            if [ "${SEED_DEMO}" = "true" ]; then
               echo "- Sign in: \`demo@fittrack.app\` / \`FitTrack2024!\` (synthetic data)"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
