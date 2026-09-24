@@ -261,27 +261,35 @@ void main() {
 
   test('nutrition day parses and a logged meal moves the totals', () async {
     final Map<String, dynamic> day = await getMap('/api/v1/nutrition/day');
-    NutritionDay.fromJson(day);
-    final num before =
-        (day['totals'] as Map<dynamic, dynamic>?)?['calories'] as num? ?? 0;
+    // Assert through the model the screens actually use: the rings read
+    // `calories.consumed`, and an earlier version of this test checked a
+    // `totals` key that the app never looks at.
+    final NutritionDay before = NutritionDay.fromJson(day);
+
+    // Exactly what the food-search screen sends: an id and a portion, with
+    // no macros. The server resolves the rest, and so must the demo.
+    final List<Map<String, dynamic>> foods = await getList(
+        '/api/v1/nutrition/foods', <String, dynamic>{'per_page': 5});
+    final Map<String, dynamic> food = foods.first;
+    final double per100 = (food['calories_per_100g'] as num).toDouble();
 
     await dio.post<dynamic>('/api/v1/nutrition/meals', data: <String, dynamic>{
       'meal_type': 'snack',
+      'logged_on': DateTime.now().toIso8601String().split('T').first,
       'items': <dynamic>[
-        <String, dynamic>{
-          'name': 'Test food',
-          'calories': 250,
-          'protein_g': 20,
-          'carbs_g': 30,
-          'fat_g': 5
-        },
+        <String, dynamic>{'food_id': food['id'], 'grams': 200},
       ],
     });
 
-    final Map<String, dynamic> after = await getMap('/api/v1/nutrition/day');
-    final num now =
-        (after['totals'] as Map<dynamic, dynamic>)['calories'] as num;
-    expect(now, before + 250);
+    final NutritionDay after =
+        NutritionDay.fromJson(await getMap('/api/v1/nutrition/day'));
+    expect(after.calories.consumed,
+        closeTo(before.calories.consumed + per100 * 2, 0.5));
+
+    // The meal list renders `total_calories` and each item's `food_name`.
+    expect(after.meals, isNotEmpty);
+    expect(after.meals.last.totalCalories, closeTo(per100 * 2, 0.5));
+    expect(after.meals.last.items.single.foodName, food['name']);
   });
 
   test('food search parses', () async {

@@ -36,6 +36,7 @@ class ProfileScreen extends ConsumerWidget {
     final ThemeMode themeMode = ref.watch(themeModeProvider);
     final Locale? locale = ref.watch(localeProvider);
     final SyncState sync = ref.watch(syncProvider);
+    final bool isDemo = ref.watch(isDemoProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.t('profileTitle'))),
@@ -221,22 +222,32 @@ class ProfileScreen extends ConsumerWidget {
                   label: l10n.t('programsTitle'),
                   onTap: () => context.pushNamed(Routes.programs),
                 ),
-                _SettingRow(
-                  icon: sync.hasPendingWork
-                      ? Icons.cloud_upload_outlined
-                      : Icons.cloud_done_outlined,
-                  label: sync.hasPendingWork
-                      ? l10n.t('syncPending', <String, Object?>{
-                          'count': sync.pendingCount + sync.failedCount,
-                        })
-                      : l10n.t('syncUpToDate'),
-                  onTap: () => ref.read(syncProvider.notifier).retryFailed(),
-                ),
+                // In demo mode there is no server to sync with. Showing the
+                // usual "up to date" row would claim the data is backed up
+                // somewhere, so say plainly that it is on this device only.
+                if (isDemo)
+                  const _SettingRow(
+                    icon: Icons.cloud_off_outlined,
+                    label: 'Sync unavailable — saved on this device only',
+                    enabled: false,
+                  )
+                else
+                  _SettingRow(
+                    icon: sync.hasPendingWork
+                        ? Icons.cloud_upload_outlined
+                        : Icons.cloud_done_outlined,
+                    label: sync.hasPendingWork
+                        ? l10n.t('syncPending', <String, Object?>{
+                            'count': sync.pendingCount + sync.failedCount,
+                          })
+                        : l10n.t('syncUpToDate'),
+                    onTap: () => ref.read(syncProvider.notifier).retryFailed(),
+                  ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          if (ref.watch(isDemoProvider)) const _DemoSection(),
+          if (isDemo) const _DemoSection(),
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.screenPadding),
@@ -385,31 +396,44 @@ class _SettingRow extends StatelessWidget {
   const _SettingRow({
     required this.icon,
     required this.label,
-    required this.onTap,
+    this.onTap,
+    this.enabled = true,
   });
 
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+
+  /// A disabled row states a fact rather than offering an action: it is
+  /// dimmed, has no chevron and does not respond to a tap.
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
+    final Color tint = enabled
+        ? context.fitColors.textMuted
+        : context.fitColors.textMuted.withValues(alpha: 0.5);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: FitCard(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.md,
         ),
         child: Row(
           children: <Widget>[
-            Icon(icon, size: 20, color: context.fitColors.textMuted),
+            Icon(icon, size: 20, color: tint),
             const SizedBox(width: AppSpacing.lg),
             Expanded(
-              child: Text(label, style: Theme.of(context).textTheme.bodyLarge),
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: enabled ? null : tint,
+                    ),
+              ),
             ),
-            const Icon(Icons.chevron_right_rounded),
+            if (enabled) const Icon(Icons.chevron_right_rounded),
           ],
         ),
       ),

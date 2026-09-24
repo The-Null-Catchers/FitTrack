@@ -105,18 +105,16 @@ class DemoStore {
       final List<dynamic> items = stored is Map && stored.containsKey('items')
           ? stored['items'] as List<dynamic>
           : (stored as List<dynamic>? ?? <dynamic>[]);
-      for (final dynamic item in items) {
+      for (int i = 0; i < items.length; i++) {
         final Map<String, dynamic> photo =
-            Map<String, dynamic>.from(item as Map<dynamic, dynamic>);
+            Map<String, dynamic>.from(items[i] as Map<dynamic, dynamic>);
         final String? b64 = bytes[photo['id']] as String?;
         if (b64 == null) continue;
         final File dest = File('${dir.path}/${photo['id']}.jpg');
         await dest.writeAsBytes(base64Decode(b64), flush: true);
         photo['url'] = dest.uri.toString();
         photo['thumbnail_url'] = dest.uri.toString();
-        item as Map<dynamic, dynamic>
-          ..clear()
-          ..addAll(photo);
+        items[i] = photo;
       }
     }
 
@@ -129,6 +127,13 @@ class DemoStore {
   /// Seed value for [key], with any saved changes applied.
   dynamic value(String key) =>
       _overlay.containsKey(key) ? _overlay[key] : _seed[key];
+
+  /// The bundled value for [key], ignoring local changes.
+  ///
+  /// Only for history the app cannot recompute — the captured nutrition days
+  /// that came before anything the user logged. Everything the user can change
+  /// is read through [value] so their edits win.
+  dynamic seedValue(String key) => _seed[key];
 
   List<Map<String, dynamic>> list(String key) {
     final dynamic v = value(key);
