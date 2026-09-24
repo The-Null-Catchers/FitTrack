@@ -12,9 +12,13 @@ import 'demo_store.dart';
 /// logged meal move the calorie ring, instead of the screens continuing to
 /// show whatever the capture happened to contain.
 class DemoAnalytics {
-  const DemoAnalytics(this._store);
+  const DemoAnalytics(this._store, {this.isArabic = false});
 
   final DemoStore _store;
+
+  /// Meal items carry a denormalised food name, so it has to be stored in the
+  /// language the reader will see it in.
+  final bool isArabic;
 
   // --- shared helpers ------------------------------------------------------
 
@@ -330,7 +334,8 @@ class DemoAnalytics {
         'id':
             '${item['id'] ?? 'demo-item-$i-${DateTime.now().microsecondsSinceEpoch}'}',
         'food_id': foodId,
-        'food_name': '${item['food_name'] ?? food['name'] ?? 'Food'}',
+        'food_name':
+            '${item['food_name'] ?? (isArabic ? (food['name_ar'] ?? food['name']) : food['name']) ?? 'Food'}',
         'grams': grams,
         // An item that already carries its own macros keeps them; otherwise
         // they come from the food, scaled to the portion.

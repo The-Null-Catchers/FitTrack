@@ -21,8 +21,12 @@ import 'demo_store.dart';
 /// directory, so changes survive closing and reopening the app.
 class DemoApiAdapter implements HttpClientAdapter {
   DemoApiAdapter(this._store, {String Function()? localeCode})
-      : _derived = DemoAnalytics(_store),
-        _localeCode = localeCode ?? _defaultLocale;
+      : _localeCode = localeCode ?? _defaultLocale,
+        _derived = DemoAnalytics(
+          _store,
+          isArabic:
+              (localeCode ?? _defaultLocale)().toLowerCase().startsWith('ar'),
+        );
 
   /// Which language the canned coach replies answer in. Supplied by the app
   /// from the user's chosen locale; defaults to English in tests.
@@ -1077,7 +1081,7 @@ class DemoApiAdapter implements HttpClientAdapter {
           final Map<String, dynamic> e = pool[(d * 5 + j) % pool.length];
           picks.add(<String, dynamic>{
             'exercise_id': e['id'],
-            'name': e['name'],
+            'name': _isArabic ? (e['name_ar'] ?? e['name']) : e['name'],
             'sets': 3,
             'target_reps': 8,
             'rest_seconds': 120,
@@ -1133,7 +1137,7 @@ class DemoApiAdapter implements HttpClientAdapter {
         'substitutions': pool
             .map((Map<String, dynamic> e) => <String, dynamic>{
                   'exercise_id': e['id'],
-                  'name': e['name'],
+                  'name': _isArabic ? (e['name_ar'] ?? e['name']) : e['name'],
                   'reason': 'Bundled suggestion (demo mode).',
                 })
             .toList(),

@@ -132,7 +132,10 @@ class WorkoutSummaryScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Text(record.exercise.name,
+                            Text(
+                                record.exercise.displayName(
+                                    Localizations.localeOf(context)
+                                        .languageCode),
                                 style: theme.textTheme.titleSmall),
                             Text(
                               record.recordType.replaceAll('_', ' '),

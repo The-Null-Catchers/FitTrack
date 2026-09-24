@@ -45,7 +45,8 @@ class RecordsScreen extends ConsumerWidget {
               <String, List<PersonalRecord>>{};
           for (final PersonalRecord record in list) {
             byExercise
-                .putIfAbsent(record.exercise.name, () => <PersonalRecord>[])
+                .putIfAbsent(record.exercise.displayName(locale),
+                    () => <PersonalRecord>[])
                 .add(record);
           }
 

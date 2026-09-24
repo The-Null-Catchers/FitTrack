@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/localization/category_labels.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/fit_card.dart';
 import '../../../core/widgets/state_views.dart';
@@ -57,10 +58,10 @@ class ExerciseDetailScreen extends ConsumerWidget {
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
                 children: <Widget>[
-                  _Tag(label: _pretty(item.muscleGroup)),
-                  _Tag(label: _pretty(item.equipment)),
-                  _Tag(label: _pretty(item.difficulty)),
-                  _Tag(label: _pretty(item.exerciseType)),
+                  _Tag(label: context.l10n.category(item.muscleGroup)),
+                  _Tag(label: context.l10n.category(item.equipment)),
+                  _Tag(label: context.l10n.category(item.difficulty)),
+                  _Tag(label: context.l10n.category(item.exerciseType)),
                 ],
               ),
               if (item.description != null) ...<Widget>[
@@ -142,7 +143,8 @@ class ExerciseDetailScreen extends ConsumerWidget {
                   spacing: AppSpacing.sm,
                   runSpacing: AppSpacing.sm,
                   children: item.secondaryMuscles
-                      .map((String muscle) => _Tag(label: _pretty(muscle)))
+                      .map((String muscle) =>
+                          _Tag(label: context.l10n.category(muscle)))
                       .toList(),
                 ),
               ],
@@ -152,12 +154,6 @@ class ExerciseDetailScreen extends ConsumerWidget {
       ),
     );
   }
-
-  static String _pretty(String value) => value
-      .split('_')
-      .map((String part) =>
-          part.isEmpty ? part : part[0].toUpperCase() + part.substring(1))
-      .join(' ');
 }
 
 class _Tag extends StatelessWidget {

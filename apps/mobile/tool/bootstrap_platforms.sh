@@ -133,4 +133,24 @@ path.write_text(text)
 PY
 fi
 
+# Release signing, when a keystore is supplied through the environment.
+#
+# Without it the build falls back to the debug key. That is fine for a local
+# run but NOT for anything you hand out: the debug keystore is generated per
+# machine, so a build produced elsewhere cannot update an install signed here.
+# Android refuses with INSTALL_FAILED_UPDATE_INCOMPATIBLE, and the only way
+# through is an uninstall, which erases the user's data.
+#
+# No key material is ever written into the repository. Gradle reads it from
+# these environment variables at build time:
+#   FITTRACK_KEYSTORE            absolute path to the .jks
+#   FITTRACK_KEYSTORE_PASSWORD   store password
+#   FITTRACK_KEY_ALIAS           key alias
+#   FITTRACK_KEY_PASSWORD        key password
+APP_GRADLE="android/app/build.gradle"
+if [[ -f "$APP_GRADLE" ]] && ! grep -q 'FITTRACK_KEYSTORE' "$APP_GRADLE"; then
+  echo "Wiring the release signing config…"
+  python3 tool/patch_signing.py "$APP_GRADLE"
+fi
+
 echo "Done. Next: flutter pub get && flutter run"

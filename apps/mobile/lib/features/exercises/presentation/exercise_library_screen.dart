@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/localization/category_labels.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -239,16 +240,11 @@ class _ExerciseTile extends StatelessWidget {
       ),
       title: Text(exercise.displayName(languageCode)),
       subtitle: Text(
-        '${_pretty(exercise.muscleGroup)} · ${_pretty(exercise.equipment)}',
+        '${context.l10n.category(exercise.muscleGroup)}'
+        ' · ${context.l10n.category(exercise.equipment)}',
         style: theme.textTheme.bodySmall,
       ),
       trailing: const Icon(Icons.chevron_right_rounded),
     );
   }
-
-  static String _pretty(String value) => value
-      .split('_')
-      .map((String part) =>
-          part.isEmpty ? part : part[0].toUpperCase() + part.substring(1))
-      .join(' ');
 }
