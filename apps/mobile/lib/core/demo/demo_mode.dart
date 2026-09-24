@@ -90,7 +90,12 @@ final Provider<bool> isDemoProvider = Provider<bool>(
 );
 
 /// Builds an [ApiClient] whose transport is the bundled-data adapter.
-ApiClient buildDemoApiClient(DemoStore store, SecureStorage storage) {
-  final Dio dio = Dio()..httpClientAdapter = DemoApiAdapter(store);
+ApiClient buildDemoApiClient(
+  DemoStore store,
+  SecureStorage storage, {
+  String Function()? localeCode,
+}) {
+  final Dio dio = Dio()
+    ..httpClientAdapter = DemoApiAdapter(store, localeCode: localeCode);
   return ApiClient(storage: storage, dio: dio);
 }

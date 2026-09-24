@@ -37,9 +37,7 @@ class PrivacyScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Your workouts, nutrition logs, measurements and FitCoach '
-                  'conversations are visible only to you. Administrators can see '
-                  'account-level counts for support, never the content itself.',
+                  l10n.t('privacyVisibleOnlyToYou'),
                   style: theme.textTheme.bodySmall,
                 ),
               ],
@@ -82,7 +80,7 @@ class PrivacyScreen extends ConsumerWidget {
                     children: <Widget>[
                       Text(l10n.t('profileExportData')),
                       Text(
-                        'A complete JSON file of everything stored for your account.',
+                        l10n.t('privacyExportDescription'),
                         style: theme.textTheme.labelSmall,
                       ),
                     ],

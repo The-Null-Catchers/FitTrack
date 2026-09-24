@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/application/auth_controller.dart';
+import '../localization/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import 'demo_mode.dart';
@@ -47,10 +48,10 @@ class _DemoModeButtonState extends ConsumerState<DemoModeButton> {
                   height: 18,
                   width: 18,
                   child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Explore the demo'),
+              : Text(context.l10n.t('demoExplore')),
         ),
         Text(
-          'Sample data on this device. No account, no connection.',
+          context.l10n.t('demoExploreHint'),
           style: theme.textTheme.bodySmall
               ?.copyWith(color: context.fitColors.textMuted),
           textAlign: TextAlign.center,
@@ -84,7 +85,7 @@ class DemoBanner extends ConsumerWidget {
               const SizedBox(width: AppSpacing.xs),
               Flexible(
                 child: Text(
-                  'Demo mode — sample data, offline',
+                  context.l10n.t('demoBanner'),
                   style: theme.textTheme.labelSmall
                       ?.copyWith(color: theme.colorScheme.onTertiaryContainer),
                 ),

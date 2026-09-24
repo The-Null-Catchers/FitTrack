@@ -153,7 +153,7 @@ class FitLineChart extends StatelessWidget {
                 reservedSize: 44,
                 interval: ((maxY - minY).abs() / 4).clamp(0.5, 1e6),
                 getTitlesWidget: (double value, TitleMeta meta) => Padding(
-                  padding: const EdgeInsets.only(right: AppSpacing.xs),
+                  padding: const EdgeInsetsDirectional.only(end: AppSpacing.xs),
                   child: Text(
                     valueFormatter?.call(value) ?? Formatters.number(value),
                     style: theme.textTheme.labelSmall

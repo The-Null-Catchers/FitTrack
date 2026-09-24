@@ -132,20 +132,19 @@ class _DailyReminderTileState extends ConsumerState<_DailyReminderTile> {
       if (!value) {
         await reminders.cancel(LocalReminders.workoutReminderId);
       } else if (!await reminders.requestPermission()) {
-        problem = 'Notifications are turned off for FitTrack, so the reminder '
-            'would not appear. Enable them in system settings and try again.';
+        problem = context.l10n.t('reminderBlocked');
       } else {
         final bool ok = await reminders.scheduleDaily(
           id: LocalReminders.workoutReminderId,
-          title: 'Time to train',
-          body: 'Your FitTrack session is waiting.',
+          title: context.l10n.t('reminderTitle'),
+          body: context.l10n.t('reminderBody'),
           hour: _time.hour,
           minute: _time.minute,
         );
-        if (!ok) problem = 'The system refused to schedule the reminder.';
+        if (!ok) problem = context.l10n.t('reminderRefused');
       }
     } on Object {
-      problem = 'Reminders are not available on this device.';
+      problem = context.l10n.t('reminderUnavailable');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -171,18 +170,18 @@ class _DailyReminderTileState extends ConsumerState<_DailyReminderTile> {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         SwitchListTile(
-          title: const Text('Daily workout reminder'),
+          title: Text(context.l10n.t('reminderDaily')),
           subtitle: Text(
             demo
-                ? 'Delivered by this phone. Works offline.'
-                : 'Delivered by this phone at ${_time.format(context)}.',
+                ? context.l10n.t('reminderDeliveredBy')
+                : '${context.l10n.t('reminderDeliveredBy')} ${_time.format(context)}',
           ),
           value: _on,
           onChanged: _busy ? null : _toggle,
         ),
         ListTile(
           enabled: !_busy,
-          title: const Text('Reminder time'),
+          title: Text(context.l10n.t('reminderTime')),
           subtitle: Text(_time.format(context)),
           trailing: const Icon(Icons.schedule_outlined),
           onTap: _busy ? null : _pickTime,
