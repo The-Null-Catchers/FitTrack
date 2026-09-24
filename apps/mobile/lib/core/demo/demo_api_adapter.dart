@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'demo_analytics.dart';
 import 'demo_store.dart';
 
 /// Serves the FitTrack API from bundled data, with no network involved.
@@ -19,9 +20,12 @@ import 'demo_store.dart';
 /// Writes go to [DemoStore], which persists them to the app's documents
 /// directory, so changes survive closing and reopening the app.
 class DemoApiAdapter implements HttpClientAdapter {
-  DemoApiAdapter(this._store);
+  DemoApiAdapter(this._store) : _derived = DemoAnalytics(_store);
 
   final DemoStore _store;
+
+  /// Every figure the screens show is recomputed from stored data by this.
+  final DemoAnalytics _derived;
 
   static const String kDemoNote =
       'Demo mode — this is a stored sample reply, not a live AI response.';
@@ -206,7 +210,7 @@ class DemoApiAdapter implements HttpClientAdapter {
       case 'workout-sessions':
         return _workouts(method, p, q, body);
       case 'personal-records':
-        return _personalRecords(method, p);
+        return _personalRecords(method, p, body);
       case 'progress':
         return _progress(method, p, q, body);
       case 'nutrition':
@@ -218,15 +222,18 @@ class DemoApiAdapter implements HttpClientAdapter {
       case 'ai':
         return _ai(method, p, body);
       case 'notifications':
-        return _store.map('notification_prefs') ??
-            <String, dynamic>{
-              'workout_reminders': true,
-              'habit_reminders': true,
-              'weekly_summary': true,
-            };
+        return _notifications(method, p, body);
       case 'sync':
-        // Demo mode has no server to sync with; accept and discard.
-        return <String, dynamic>{'applied': 0, 'conflicts': <dynamic>[]};
+        // There is no server to sync with, and claiming otherwise would tell
+        // the user their data left the device when it did not. Refuse loudly:
+        // demo changes are already durable in the local store, so there is
+        // nothing to push and nothing to lose.
+        throw _DemoError(
+          503,
+          'demo_offline',
+          'Sync is unavailable in demo mode. Changes are saved on this device '
+              'only.',
+        );
       default:
         throw _DemoError(404, 'not_found', 'No demo data for $path');
     }
@@ -263,14 +270,20 @@ class DemoApiAdapter implements HttpClientAdapter {
           }
         ];
       case 'logout':
+        // Nothing to revoke: the demo never held a real session.
+        return <String, dynamic>{'success': true, 'message': 'Signed out.'};
       case 'change-password':
       case 'forgot-password':
       case 'reset-password':
       case 'resend-verification':
-        return <String, dynamic>{
-          'success': true,
-          'message': 'Done (demo mode).'
-        };
+        // These need an account server. Reporting success would tell the user
+        // their password changed when nothing happened.
+        throw _DemoError(
+          503,
+          'demo_offline',
+          'Account and password changes need a server, which demo mode does '
+              'not have.',
+        );
       case 'delete-account':
         await _store.reset();
         return <String, dynamic>{
@@ -519,7 +532,6 @@ class DemoApiAdapter implements HttpClientAdapter {
       all.insert(0, _summarise(finished));
       await _store.putList('workout_sessions', all);
       await _store.putInMap('session_details', id, finished);
-      await _bumpDashboard();
       return finished;
     }
     if (action == 'discard') {
@@ -533,7 +545,6 @@ class DemoApiAdapter implements HttpClientAdapter {
           _store.map('session_details') ?? <String, dynamic>{})
         ..remove(id);
       await _store.put('session_details', details);
-      await _bumpDashboard();
       return null;
     }
 
@@ -560,12 +571,11 @@ class DemoApiAdapter implements HttpClientAdapter {
           _asMap(e)['sets'] as List<dynamic>? ?? <dynamic>[];
       for (final dynamic s in ss) {
         final Map<String, dynamic> set = _asMap(s);
-        if (set['completed'] == false) continue;
+        // The payloads use `is_completed`; checking only `completed` counted
+        // sets the user had skipped towards the session's volume.
+        if (!DemoAnalytics.setCounts(set)) continue;
         sets += 1;
-        final num reps = (set['reps'] as num?) ?? 0;
-        final num weight =
-            (set['weight_kg'] as num?) ?? (set['weight'] as num?) ?? 0;
-        volume += reps * weight;
+        volume += DemoAnalytics.setVolume(set);
       }
     }
     return <String, dynamic>{
@@ -580,28 +590,57 @@ class DemoApiAdapter implements HttpClientAdapter {
     };
   }
 
-  /// Keep the dashboard's workout count honest after a change.
-  Future<void> _bumpDashboard() async {
-    final Map<String, dynamic>? dash = _store.map('progress_dashboard');
-    if (dash == null) return;
-    final Map<String, dynamic> next = Map<String, dynamic>.from(dash);
-    final int count = _store.list('workout_sessions').length;
-    for (final String key in <String>[
-      'total_workouts',
-      'workouts_total',
-      'workout_count'
-    ]) {
-      if (next.containsKey(key)) next[key] = count;
-    }
-    await _store.put('progress_dashboard', next);
-  }
-
   // --- personal records ----------------------------------------------------
 
-  dynamic _personalRecords(String method, List<String> p) {
-    if (p.length > 1 && p[1] == 'acknowledge')
-      return <String, dynamic>{'success': true};
+  Future<dynamic> _personalRecords(
+      String method, List<String> p, dynamic body) async {
+    if (p.length > 1 && p[1] == 'acknowledge') {
+      // Without storing this, every record stays "new" and the celebration
+      // sheet reappears after each workout.
+      final Set<String> ids =
+          ((_asMap(body)['ids'] as List<dynamic>?) ?? <dynamic>[])
+              .map((dynamic e) => '$e')
+              .toSet();
+      final List<Map<String, dynamic>> all = _store.list('personal_records');
+      for (int i = 0; i < all.length; i++) {
+        if (ids.contains('${all[i]['id']}')) {
+          all[i] = <String, dynamic>{...all[i], 'acknowledged_at': _now()};
+        }
+      }
+      await _store.putList('personal_records', all);
+      return <String, dynamic>{'acknowledged': ids.length};
+    }
     return _store.value('personal_records');
+  }
+
+  // --- notifications -------------------------------------------------------
+
+  /// Notification preferences, stored locally.
+  ///
+  /// A PATCH used to be answered with the unchanged defaults, so every toggle
+  /// silently reverted on the next read.
+  Future<dynamic> _notifications(
+      String method, List<String> p, dynamic body) async {
+    const Map<String, dynamic> defaults = <String, dynamic>{
+      'workout_reminders': true,
+      'habit_reminders': true,
+      'weekly_summary': true,
+      'quiet_hours_start': null,
+      'quiet_hours_end': null,
+    };
+    final Map<String, dynamic> current = <String, dynamic>{
+      ...defaults,
+      ..._asMap(_store.map('notification_prefs')),
+    };
+    if (method == 'PATCH' || method == 'PUT' || method == 'POST') {
+      final Map<String, dynamic> next = <String, dynamic>{
+        ...current,
+        ..._asMap(body),
+      };
+      await _store.put('notification_prefs', next);
+      return next;
+    }
+    return current;
   }
 
   // --- progress ------------------------------------------------------------
@@ -615,23 +654,37 @@ class DemoApiAdapter implements HttpClientAdapter {
     final String sub = p.length > 1 ? p[1] : '';
     switch (sub) {
       case 'dashboard':
-        return _store.value('progress_dashboard');
+        // Rebuilt on every request from stored workouts, weights, meals,
+        // habits and goals — never read back from the capture.
+        return _derived.dashboard();
       case 'overview':
-        return _store.value('progress_overview');
+        return _derived.overview(q['range'] ?? '30d');
       case 'charts':
         final String kind = p.length > 2 ? p[2] : 'weight';
-        // Weight and volume are derived from what is stored locally, so a
-        // weight you log or a workout you finish moves the chart. The others
-        // still come from the bundled capture.
-        if (kind == 'weight') return _weightChart(q['range'] ?? '30d');
-        if (kind == 'volume') return _volumeChart(q['range'] ?? '30d');
-        return _store.value('chart_$kind') ?? _store.value('chart_weight');
+        final String range = q['range'] ?? '30d';
+        switch (kind) {
+          case 'weight':
+            return _derived.weightChart(range);
+          case 'volume':
+            return _derived.volumeChart(range);
+          case 'nutrition':
+            return _derived.nutritionChart(range);
+          case 'measurements':
+            return _derived.measurementChart(range, q['measurement_type']);
+          default:
+            throw _DemoError(404, 'not_found', 'No demo chart for $kind');
+        }
       case 'exercises':
         if (p.length > 2) {
-          throw _DemoError(
-              404, 'not_found', 'No demo history for that exercise');
+          final Map<String, dynamic>? progress =
+              _derived.exerciseProgress(p[2], q['range'] ?? '6m');
+          if (progress == null) {
+            throw _DemoError(404, 'not_found',
+                'No stored sessions include that exercise yet');
+          }
+          return progress;
         }
-        return _store.value('progress_exercises') ?? <dynamic>[];
+        return _derived.trainedExercises();
       case 'photos':
         if (p.length > 2 && p[2] == 'compare') {
           final List<Map<String, dynamic>> all = _store.list('photos');
@@ -689,90 +742,6 @@ class DemoApiAdapter implements HttpClientAdapter {
     }
   }
 
-  /// Body-weight chart built from the entries actually stored on the device.
-  Map<String, dynamic> _weightChart(String range) {
-    final int days = _rangeDays(range);
-    final DateTime from = DateTime.now().subtract(Duration(days: days));
-    final List<Map<String, dynamic>> points = <Map<String, dynamic>>[];
-    for (final Map<String, dynamic> e in _store.list('weights')) {
-      final DateTime? on = DateTime.tryParse('${e['recorded_on']}');
-      final num? kg = e['weight_kg'] as num?;
-      if (on == null || kg == null || on.isBefore(from)) continue;
-      points.add(<String, dynamic>{
-        'x': on.toIso8601String().split('T').first,
-        'y': kg.toDouble(),
-      });
-    }
-    points.sort((Map<String, dynamic> a, Map<String, dynamic> b) =>
-        '${a['x']}'.compareTo('${b['x']}'));
-    return _chart(range, 'body_weight', 'Body weight', 'kg', points);
-  }
-
-  /// Training-volume chart, totalled per day from stored sessions.
-  Map<String, dynamic> _volumeChart(String range) {
-    final int days = _rangeDays(range);
-    final DateTime from = DateTime.now().subtract(Duration(days: days));
-    final Map<String, double> byDay = <String, double>{};
-    for (final Map<String, dynamic> s in _store.list('workout_sessions')) {
-      final DateTime? on =
-          DateTime.tryParse('${s['completed_at'] ?? s['started_at']}');
-      if (on == null || on.isBefore(from)) continue;
-      final String day = on.toIso8601String().split('T').first;
-      final num vol = (s['total_volume_kg'] as num?) ?? 0;
-      byDay[day] = (byDay[day] ?? 0) + vol.toDouble();
-    }
-    final List<String> days2 = byDay.keys.toList()..sort();
-    return _chart(
-      range,
-      'volume',
-      'Training volume',
-      'kg',
-      days2
-          .map((String d) => <String, dynamic>{'x': d, 'y': byDay[d]})
-          .toList(),
-    );
-  }
-
-  int _rangeDays(String range) => switch (range) {
-        '7d' => 7,
-        '90d' => 90,
-        '180d' => 180,
-        '1y' => 365,
-        'all' => 3650,
-        _ => 30,
-      };
-
-  Map<String, dynamic> _chart(
-    String range,
-    String key,
-    String label,
-    String unit,
-    List<Map<String, dynamic>> points,
-  ) {
-    double? changeAbs;
-    double? changePct;
-    if (points.length >= 2) {
-      final double first = (points.first['y'] as num).toDouble();
-      final double last = (points.last['y'] as num).toDouble();
-      changeAbs = last - first;
-      if (first != 0) changePct = (changeAbs / first) * 100;
-    }
-    return <String, dynamic>{
-      'range': range,
-      'series': <Map<String, dynamic>>[
-        <String, dynamic>{
-          'key': key,
-          'label': label,
-          'unit': unit,
-          'points': points,
-          'trend': <dynamic>[],
-        }
-      ],
-      'change_absolute': changeAbs,
-      'change_percent': changePct,
-    };
-  }
-
   // --- nutrition -----------------------------------------------------------
 
   Future<dynamic> _nutrition(
@@ -782,7 +751,9 @@ class DemoApiAdapter implements HttpClientAdapter {
     dynamic body,
   ) async {
     final String sub = p.length > 1 ? p[1] : '';
-    if (sub == 'day') return _store.value('nutrition_day');
+    // The app asks for a specific day; answering with one fixed day would
+    // show yesterday's food under today's date.
+    if (sub == 'day') return _derived.dayFor(q['on'] ?? _today());
 
     if (sub == 'foods') {
       if (p.length > 2 && p[2] == 'recent') {
@@ -792,8 +763,20 @@ class DemoApiAdapter implements HttpClientAdapter {
         throw _DemoError(
             404, 'not_found', 'Barcode scanning is not available in demo mode');
       }
-      if (p.length > 3 && p[3] == 'favorite')
-        return <String, dynamic>{'success': true};
+      if (p.length > 3 && p[3] == 'favorite') {
+        // The caller reads `is_favorite` back, so a bare success would make
+        // the star spring back to off every time.
+        final List<Map<String, dynamic>> all = _store.list('foods');
+        final int i =
+            all.indexWhere((Map<String, dynamic> f) => f['id'] == p[2]);
+        if (i < 0) throw _DemoError(404, 'not_found', 'Unknown food');
+        all[i] = <String, dynamic>{
+          ...all[i],
+          'is_favorite': all[i]['is_favorite'] != true,
+        };
+        await _store.putList('foods', all);
+        return all[i];
+      }
       if (method == 'POST') {
         final Map<String, dynamic> created = <String, dynamic>{
           ..._asMap(body),
@@ -816,74 +799,83 @@ class DemoApiAdapter implements HttpClientAdapter {
     }
 
     if (sub == 'meals') {
-      final Map<String, dynamic> day = Map<String, dynamic>.from(
-          _store.map('nutrition_day') ?? <String, dynamic>{});
-      final List<dynamic> meals =
-          List<dynamic>.from(day['meals'] as List<dynamic>? ?? <dynamic>[]);
       if (method == 'POST') {
-        final Map<String, dynamic> meal = <String, dynamic>{
-          'name': _asMap(body)['meal_type'] ?? 'Meal',
-          ..._asMap(body),
-          'id': _id(),
-          // Required by the client model.
-          'logged_on': _asMap(body)['logged_on'] ?? _today(),
-          'logged_at': _now(),
-        };
-        meals.add(meal);
-        day['meals'] = meals;
-        await _store.put('nutrition_day', _recalcDay(day));
+        final String on = '${_asMap(body)['logged_on'] ?? q['on'] ?? _today()}';
+        final Map<String, dynamic> meal = DemoAnalytics.withMealTotals(
+          <String, dynamic>{
+            'name': _asMap(body)['meal_type'] ?? 'Meal',
+            ..._asMap(body),
+            'id': _id(),
+            // Required by the client model.
+            'logged_on': on,
+            'logged_at': _now(),
+            'meal_type': _asMap(body)['meal_type'] ?? 'snack',
+            // The app posts {food_id, grams}; the server answers with the
+            // food resolved and its macros scaled to the portion.
+            'items': _derived.resolveItems(
+                _asMap(body)['items'] as List<dynamic>? ?? <dynamic>[]),
+          },
+        );
+        await _editDay(on, (Map<String, dynamic> day) {
+          (day['meals'] as List<dynamic>).add(meal);
+        });
         return meal;
       }
       if (method == 'DELETE' && p.length > 2) {
-        meals.removeWhere((dynamic m) => _asMap(m)['id'] == p[2]);
-        day['meals'] = meals;
-        await _store.put('nutrition_day', _recalcDay(day));
+        final String on = _dayHolding(p[2]) ?? _today();
+        await _editDay(on, (Map<String, dynamic> day) {
+          (day['meals'] as List<dynamic>)
+              .removeWhere((dynamic m) => _asMap(m)['id'] == p[2]);
+        });
         return null;
       }
-      return meals;
+      return _derived.dayFor(q['on'] ?? _today())['meals'];
     }
 
     if (sub == 'water') {
-      final Map<String, dynamic> day = Map<String, dynamic>.from(
-          _store.map('nutrition_day') ?? <String, dynamic>{});
+      final String on = '${_asMap(body)['logged_on'] ?? q['on'] ?? _today()}';
       final num add = (_asMap(body)['amount_ml'] as num?) ??
           (_asMap(body)['ml'] as num?) ??
           0;
-      day['water_ml'] = ((day['water_ml'] as num?) ?? 0) + add;
-      await _store.put('nutrition_day', day);
-      return day;
+      late Map<String, dynamic> updated;
+      await _editDay(on, (Map<String, dynamic> day) {
+        day['water_raw_ml'] =
+            ((day['water_raw_ml'] as num?) ?? 0).toDouble() + add;
+      });
+      updated = _derived.dayFor(on);
+      return updated;
     }
 
     throw _DemoError(404, 'not_found', 'No demo data for nutrition/$sub');
   }
 
-  /// Re-total a day after its meals change, so the rings move.
-  Map<String, dynamic> _recalcDay(Map<String, dynamic> day) {
-    double cals = 0, protein = 0, carbs = 0, fat = 0;
-    for (final dynamic m in (day['meals'] as List<dynamic>? ?? <dynamic>[])) {
-      final Map<String, dynamic> meal = _asMap(m);
-      for (final dynamic i
-          in (meal['items'] as List<dynamic>? ?? <dynamic>[])) {
-        final Map<String, dynamic> item = _asMap(i);
-        cals += (item['calories'] as num?)?.toDouble() ?? 0;
-        protein += (item['protein_g'] as num?)?.toDouble() ?? 0;
-        carbs += (item['carbs_g'] as num?)?.toDouble() ?? 0;
-        fat += (item['fat_g'] as num?)?.toDouble() ?? 0;
-      }
-      cals += (meal['calories'] as num?)?.toDouble() ?? 0;
-      protein += (meal['protein_g'] as num?)?.toDouble() ?? 0;
-      carbs += (meal['carbs_g'] as num?)?.toDouble() ?? 0;
-      fat += (meal['fat_g'] as num?)?.toDouble() ?? 0;
+  /// Apply [change] to the stored day for [on] and save it.
+  ///
+  /// Days live in a map keyed by date, so logging lunch today cannot silently
+  /// overwrite what was eaten yesterday.
+  Future<void> _editDay(
+    String on,
+    void Function(Map<String, dynamic> day) change,
+  ) async {
+    final Map<String, dynamic> days = _derived.storedDays();
+    final Map<String, dynamic> day = days.containsKey(on)
+        ? Map<String, dynamic>.from(_asMap(days[on]))
+        : <String, dynamic>{'logged_on': on, 'meals': <dynamic>[]};
+    day['meals'] =
+        List<dynamic>.from(day['meals'] as List<dynamic>? ?? <dynamic>[]);
+    change(day);
+    days[on] = day;
+    await _store.put('nutrition_days', days);
+  }
+
+  /// Which stored day holds the meal with [mealId], if any.
+  String? _dayHolding(String mealId) {
+    for (final MapEntry<String, dynamic> e in _derived.storedDays().entries) {
+      final List<dynamic> meals =
+          _asMap(e.value)['meals'] as List<dynamic>? ?? <dynamic>[];
+      if (meals.any((dynamic m) => _asMap(m)['id'] == mealId)) return e.key;
     }
-    final Map<String, dynamic> totals =
-        Map<String, dynamic>.from(_asMap(day['totals']));
-    totals['calories'] = cals.round();
-    totals['protein_g'] = protein.round();
-    totals['carbs_g'] = carbs.round();
-    totals['fat_g'] = fat.round();
-    day['totals'] = totals;
-    day['calories'] = cals.round();
-    return day;
+    return null;
   }
 
   // --- habits --------------------------------------------------------------

@@ -46,20 +46,24 @@ can be cleared by the OS at any time.
 
 ## What reflects local changes
 
-Derived from what is stored on the device:
+Everything on screen is recomputed from what is stored on the device. The
+bundled capture seeds the starting state; no figure is ever read back out of it
+as a pre-computed total. `DemoAnalytics` (`lib/core/demo/demo_analytics.dart`)
+does the deriving, and the adapter calls it on every request:
 
-- Workout history, including set count and total volume per session
-- Body-weight chart (`/progress/charts/weight`)
-- Training-volume chart (`/progress/charts/volume`)
-- Nutrition day totals, recomputed when a meal is added or removed
+- Workout history, set count and total volume per session
+- Every dashboard tile — calorie, protein and water rings, this week's
+  workouts, current and longest streak, today's habits, active goals,
+  unacknowledged records, latest weight and 30-day change
+- Body-weight, training-volume, nutrition and body-measurement charts
+- `/progress/overview`, including volume split by muscle group
+- Per-exercise progress, derived from the sets stored for that exercise
+- Nutrition, stored per day, so logging lunch today leaves yesterday alone
 - Habit streaks, recomputed on each check-in
 - Personal records, goals, measurements, photos
 
-Still from the bundled capture, and will **not** move when you log something:
-
-- The nutrition and measurement charts
-- Most dashboard summary tiles (the workout count does update)
-- `/progress/overview`
+Delete a workout and the volume comes back off the chart; log a meal and the
+rings move. Nothing keeps showing the seed after you change the data.
 
 ## Simulated or unavailable
 
@@ -69,9 +73,10 @@ Still from the bundled capture, and will **not** move when you log something:
 | FitCoach injury safety | **Real logic**, not canned: injury, pain and medical wording is redirected to a professional and never gets training advice. "Muscle soreness" is deliberately allowed through. |
 | Generated workout plans | Built deterministically from the bundled exercise library. Not AI. |
 | Barcode scanning | **Unavailable** — returns a clean 404 rather than hanging. |
-| Sign up / sign in / password reset | **Unavailable in demo mode** by design; they point at a placeholder host. Demo mode is the only working entry. |
+| Sign up / sign in | **Unavailable in demo mode** by design; they point at a placeholder host. Demo mode is the only working entry. |
+| Password change / reset, resend verification | **Refused** with a 503 and a clear message. These need an account server, and reporting success would tell the user their password changed when nothing happened. |
 | Push notifications, email | Not delivered. |
-| Server sync | Accepted and discarded — there is no server. |
+| Server sync | **Refused** with a 503. Demo changes are already durable on the device, so there is nothing to push — and claiming a successful sync would tell the user their data is backed up somewhere it is not. The sync row in Settings is disabled in demo mode and reads "saved on this device only". |
 | Daily workout reminder | **Real**, delivered by the phone. The switch only turns on once the OS accepts the schedule, and says so when it refuses. |
 
 ## Building

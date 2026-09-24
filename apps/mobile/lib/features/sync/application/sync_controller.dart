@@ -4,12 +4,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/outbox_dao.dart';
+import '../../../core/demo/demo_mode.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/providers.dart';
 
 /// What the sync indicator is showing.
-enum SyncStatus { idle, syncing, offline, failed }
+///
+/// [disabled] is demo mode: there is no server to reach, so the app says so
+/// rather than showing a reassuring "up to date".
+enum SyncStatus { idle, syncing, offline, failed, disabled }
 
 @immutable
 class SyncState {
@@ -85,6 +89,14 @@ class SyncController extends StateNotifier<SyncState> {
 
   Future<void> sync() async {
     if (_isSyncing) return;
+    // Demo mode has no server. Pushing at one would either fail or, worse,
+    // appear to succeed and leave the user believing their data is backed up.
+    // Demo changes are already durable in the local store, so there is
+    // nothing to push.
+    if (_ref.read(isDemoProvider)) {
+      state = state.copyWith(status: SyncStatus.disabled, clearError: true);
+      return;
+    }
     if (!_ref.read(isOnlineProvider)) {
       state = state.copyWith(status: SyncStatus.offline);
       return;
@@ -128,20 +140,36 @@ class SyncController extends StateNotifier<SyncState> {
         }
       }
 
-      await _ref.read(appPreferencesProvider).setLastSyncAt(DateTime.now());
       await refreshCounts();
 
       final int stillFailed = await _outbox.failedCount();
+      final bool acknowledgedSomething =
+          await _outbox.pendingCount() < pending.length;
+
+      // Only claim a successful sync when the server actually took something.
+      if (acknowledgedSomething) {
+        await _ref.read(appPreferencesProvider).setLastSyncAt(DateTime.now());
+      }
       state = state.copyWith(
         status: stillFailed > 0 ? SyncStatus.failed : SyncStatus.idle,
-        lastSyncedAt: DateTime.now(),
+        lastSyncedAt:
+            acknowledgedSomething ? DateTime.now() : state.lastSyncedAt,
       );
 
-      // More work queued than one batch: keep going.
-      if (await _outbox.pendingCount() > 0) {
+      // More work queued than one batch: keep going — but only if this round
+      // actually drained something. A server that acknowledges nothing would
+      // otherwise put this into an endless loop over the same batch.
+      final int remaining = await _outbox.pendingCount();
+      if (remaining > 0 && acknowledgedSomething) {
         _isSyncing = false;
         await sync();
         return;
+      }
+      if (remaining > 0) {
+        state = state.copyWith(
+          status: SyncStatus.failed,
+          lastError: 'The server acknowledged none of the queued changes.',
+        );
       }
     } on ApiException catch (error) {
       state = state.copyWith(
