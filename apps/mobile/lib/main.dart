@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'core/database/app_database.dart';
+import 'core/demo/demo_mode.dart';
 import 'core/providers.dart';
 import 'core/storage/app_preferences.dart';
 
@@ -25,12 +26,19 @@ Future<void> main() async {
   final AppDatabase database = await AppDatabase.open();
   final AppPreferences preferences = await AppPreferences.create();
 
+  // If demo mode was left on, reopen the bundled data before the first frame
+  // so the app does not flash the signed-out screen on the way back in.
+  final ProviderContainer container = ProviderContainer(
+    overrides: <Override>[
+      appDatabaseProvider.overrideWithValue(database),
+      appPreferencesProvider.overrideWithValue(preferences),
+    ],
+  );
+  await container.read(demoControllerProvider.notifier).restore();
+
   runApp(
-    ProviderScope(
-      overrides: <Override>[
-        appDatabaseProvider.overrideWithValue(database),
-        appPreferencesProvider.overrideWithValue(preferences),
-      ],
+    UncontrolledProviderScope(
+      container: container,
       child: const FitTrackApp(),
     ),
   );

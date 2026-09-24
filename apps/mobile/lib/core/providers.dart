@@ -5,6 +5,7 @@ import 'database/active_session_dao.dart';
 import 'database/app_database.dart';
 import 'database/cache_dao.dart';
 import 'database/outbox_dao.dart';
+import 'demo/demo_mode.dart';
 import 'network/api_client.dart';
 import 'network/connectivity_service.dart';
 import 'storage/app_preferences.dart';
@@ -63,6 +64,14 @@ final StateProvider<int> sessionExpiredTickProvider =
     StateProvider<int>((Ref ref) => 0);
 
 final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((Ref ref) {
+  // In demo mode the transport is swapped for one that answers from bundled
+  // data. Everything above this line — repositories, controllers, screens — is
+  // identical either way. That is the point: the demo exercises the real app,
+  // and the online path is left untouched.
+  final DemoState demo = ref.watch(demoControllerProvider);
+  if (demo.isActive) {
+    return buildDemoApiClient(demo.store!, ref.watch(secureStorageProvider));
+  }
   return ApiClient(
     storage: ref.watch(secureStorageProvider),
     onSessionExpired: () =>

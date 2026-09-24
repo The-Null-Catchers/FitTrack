@@ -3,6 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../../core/demo/demo_mode.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/providers.dart';
 import '../../../core/router/app_router.dart';
@@ -230,6 +236,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
+          if (ref.watch(isDemoProvider)) const _DemoSection(),
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.screenPadding),
@@ -405,6 +412,135 @@ class _SettingRow extends StatelessWidget {
             const Icon(Icons.chevron_right_rounded),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Demo-only controls: put the bundled data back, or leave demo mode.
+class _DemoSection extends ConsumerStatefulWidget {
+  const _DemoSection();
+
+  @override
+  ConsumerState<_DemoSection> createState() => _DemoSectionState();
+}
+
+class _DemoSectionState extends ConsumerState<_DemoSection> {
+  bool _busy = false;
+
+  Future<void> _reset() async {
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Reset demo data?'),
+        content: const Text(
+          'Workouts, meals, habits and anything else you changed in the demo '
+          'will go back to the bundled sample data. This cannot be undone.',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(demoControllerProvider.notifier).resetData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Demo data reset.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _export() async {
+    setState(() => _busy = true);
+    try {
+      final File? file =
+          await ref.read(demoControllerProvider.notifier).exportToFile();
+      if (file == null) return;
+      await Share.shareXFiles(
+        <XFile>[XFile(file.path)],
+        subject: 'FitTrack backup',
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _restore() async {
+    final FilePickerResult? picked = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      withData: false,
+    );
+    final String? path = picked?.files.single.path;
+    if (path == null) return;
+    setState(() => _busy = true);
+    String message = 'Backup restored.';
+    try {
+      await ref
+          .read(demoControllerProvider.notifier)
+          .importFromFile(File(path));
+    } on FormatException {
+      message = "That file isn't a FitTrack backup. Nothing was changed.";
+    } on Object {
+      message = 'Could not read that backup. Nothing was changed.';
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  Future<void> _leave() async {
+    await ref.read(demoControllerProvider.notifier).disable();
+    await ref.read(authControllerProvider.notifier).signOut();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.screenPadding, vertical: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _export,
+            icon: const Icon(Icons.ios_share_rounded, size: 18),
+            label: const Text('Export my data'),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _restore,
+            icon: const Icon(Icons.restore_rounded, size: 18),
+            label: const Text('Restore from a backup'),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _reset,
+            icon: const Icon(Icons.restart_alt_rounded, size: 18),
+            label: const Text('Reset demo data'),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextButton(
+            onPressed: _busy ? null : _leave,
+            child: const Text('Leave demo mode'),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
       ),
     );
   }

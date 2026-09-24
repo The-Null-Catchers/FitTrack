@@ -34,6 +34,8 @@ dependencies:
   fl_chart: ^0.69.0
   cached_network_image: ^3.4.1
   image_picker: ^1.1.2
+  share_plus: ^10.1.2
+  file_picker: ^8.1.6
   intl: ^0.19.0
 
   # Platform integration
@@ -43,6 +45,8 @@ dependencies:
   url_launcher: ^6.3.0
 
 dev_dependencies:
+  path_provider_platform_interface: ^2.1.2
+  plugin_platform_interface: ^2.1.8
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
@@ -55,3 +59,4 @@ flutter:
   uses-material-design: true
   assets:
     - lib/l10n/
+    - assets/demo/
