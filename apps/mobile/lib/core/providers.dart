@@ -1,3 +1,5 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -70,7 +72,14 @@ final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((Ref ref) {
   // and the online path is left untouched.
   final DemoState demo = ref.watch(demoControllerProvider);
   if (demo.isActive) {
-    return buildDemoApiClient(demo.store!, ref.watch(secureStorageProvider));
+    return buildDemoApiClient(
+      demo.store!,
+      ref.watch(secureStorageProvider),
+      // The canned coach replies answer in whichever language is selected.
+      localeCode: () =>
+          ref.read(localeProvider)?.languageCode ??
+          PlatformDispatcher.instance.locale.languageCode,
+    );
   }
   return ApiClient(
     storage: ref.watch(secureStorageProvider),

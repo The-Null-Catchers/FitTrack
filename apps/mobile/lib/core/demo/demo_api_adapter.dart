@@ -20,7 +20,17 @@ import 'demo_store.dart';
 /// Writes go to [DemoStore], which persists them to the app's documents
 /// directory, so changes survive closing and reopening the app.
 class DemoApiAdapter implements HttpClientAdapter {
-  DemoApiAdapter(this._store) : _derived = DemoAnalytics(_store);
+  DemoApiAdapter(this._store, {String Function()? localeCode})
+      : _derived = DemoAnalytics(_store),
+        _localeCode = localeCode ?? _defaultLocale;
+
+  /// Which language the canned coach replies answer in. Supplied by the app
+  /// from the user's chosen locale; defaults to English in tests.
+  final String Function() _localeCode;
+
+  static String _defaultLocale() => 'en';
+
+  bool get _isArabic => _localeCode().toLowerCase().startsWith('ar');
 
   final DemoStore _store;
 
@@ -29,6 +39,12 @@ class DemoApiAdapter implements HttpClientAdapter {
 
   static const String kDemoNote =
       'Demo mode — this is a stored sample reply, not a live AI response.';
+
+  static const String kDemoNoteAr =
+      'الوضع التجريبي — هذا ردّ محفوظ مسبقًا، وليس ردًّا مباشرًا من الذكاء الاصطناعي.';
+
+  /// The label appended to every canned reply, in the reader's language.
+  String get _note => _isArabic ? kDemoNoteAr : kDemoNote;
 
   @override
   Future<ResponseBody> fetch(
@@ -1022,7 +1038,7 @@ class DemoApiAdapter implements HttpClientAdapter {
         })
         ..add(msg);
       await _store.putList('ai_messages', convo);
-      return <String, dynamic>{'message': msg, 'disclaimer': kDemoNote};
+      return <String, dynamic>{'message': msg, 'disclaimer': _note};
     }
 
     if (sub == 'conversations') {
@@ -1075,7 +1091,7 @@ class DemoApiAdapter implements HttpClientAdapter {
       }
       return <String, dynamic>{
         'generation_id': _id(),
-        'disclaimer': kDemoNote,
+        'disclaimer': _note,
         'plan': <String, dynamic>{
           'name': 'Demo ${days}-day plan',
           'description': 'Built offline from the bundled exercise library.',
@@ -1085,7 +1101,7 @@ class DemoApiAdapter implements HttpClientAdapter {
           'estimated_minutes': 60,
           'equipment_needed': <String>['barbell', 'dumbbell'],
           'days': plannedDays,
-          'coaching_notes': <String>[kDemoNote],
+          'coaching_notes': <String>[_note],
         },
       };
     }
@@ -1105,7 +1121,7 @@ class DemoApiAdapter implements HttpClientAdapter {
       return <String, dynamic>{
         'summary': '$kDemoNote\n\nYour bundled history shows steady training '
             'across the last twelve weeks, with the most volume on lower-body days.',
-        'disclaimer': kDemoNote,
+        'disclaimer': _note,
       };
     }
 
@@ -1113,7 +1129,7 @@ class DemoApiAdapter implements HttpClientAdapter {
       final List<Map<String, dynamic>> pool =
           _store.list('exercises').take(5).toList();
       return <String, dynamic>{
-        'disclaimer': kDemoNote,
+        'disclaimer': _note,
         'substitutions': pool
             .map((Map<String, dynamic> e) => <String, dynamic>{
                   'exercise_id': e['id'],
@@ -1129,7 +1145,7 @@ class DemoApiAdapter implements HttpClientAdapter {
         'used': 0,
         'limit': 0,
         'unlimited': true,
-        'note': kDemoNote
+        'note': _note
       };
     }
 
@@ -1172,49 +1188,89 @@ class DemoApiAdapter implements HttpClientAdapter {
     return patterns.any(m.contains);
   }
 
-  static const String _medicalReply =
-      "I'm not able to help with injuries, pain or medical symptoms — that "
-      'needs a qualified professional who can actually assess you, such as a '
-      'doctor or a physiotherapist.\n\nIf the pain is severe, came on suddenly, '
-      'or you have symptoms like chest pain, dizziness or numbness, please seek '
-      'medical care now.\n\nOnce you have been cleared to train, I am glad to '
-      'help you adjust your programme around what you can do.';
+  /// The safety redirect, in the reader's language. This is real logic, not a
+  /// canned pleasantry: an injury or medical question never receives training
+  /// advice in either language.
+  String get _medicalReply => _isArabic
+      ? 'لا أستطيع المساعدة في الإصابات أو الألم أو الأعراض الطبية — هذا يحتاج '
+          'إلى مختص مؤهل يستطيع فحصك، مثل طبيب أو أخصائي علاج طبيعي.\n\n'
+          'إذا كان الألم شديدًا أو ظهر فجأة، أو لديك أعراض مثل ألم الصدر أو '
+          'الدوخة أو التنميل، فاطلب رعاية طبية الآن.\n\nبعد حصولك على إذن '
+          'بالتمرين، يسعدني مساعدتك في تعديل برنامجك بما يناسبك.'
+      : "I'm not able to help with injuries, pain or medical symptoms — that "
+          'needs a qualified professional who can actually assess you, such as '
+          'a doctor or a physiotherapist.\n\nIf the pain is severe, came on '
+          'suddenly, or you have symptoms like chest pain, dizziness or '
+          'numbness, please seek medical care now.\n\nOnce you have been '
+          'cleared to train, I am glad to help you adjust your programme '
+          'around what you can do.';
 
   String _coachReply(String message) {
     final String m = message.toLowerCase();
+    final bool ar = _isArabic;
     String body;
     if (m.contains('protein') ||
         m.contains('eat') ||
         m.contains('diet') ||
-        m.contains('nutrition')) {
-      body = 'Aim for roughly 1.6–2.2 g of protein per kg of bodyweight a day, '
-          'spread across three or four meals. Keep total calories near your '
-          'target and let the scale trend over a fortnight tell you whether to '
-          'adjust.';
+        m.contains('nutrition') ||
+        m.contains('بروتين') ||
+        m.contains('أكل') ||
+        m.contains('تغذية')) {
+      body = ar
+          ? 'استهدف تقريبًا 1.6 إلى 2.2 غرام من البروتين لكل كيلوغرام من وزنك '
+              'يوميًا، موزّعة على ثلاث أو أربع وجبات. حافظ على سعراتك قرب هدفك '
+              'ودع اتجاه الوزن خلال أسبوعين يحدد ما إذا كنت بحاجة إلى تعديل.'
+          : 'Aim for roughly 1.6–2.2 g of protein per kg of bodyweight a day, '
+              'spread across three or four meals. Keep total calories near your '
+              'target and let the scale trend over a fortnight tell you whether '
+              'to adjust.';
     } else if (m.contains('plateau') ||
         m.contains('stuck') ||
-        m.contains('progress')) {
-      body =
-          'A stall usually means recovery, not effort. Hold the weight for a '
-          'week and add reps instead, check you are sleeping enough, and make '
-          'sure the last set is genuinely close to failure.';
+        m.contains('progress') ||
+        m.contains('ثبات') ||
+        m.contains('تقدم')) {
+      body = ar
+          ? 'الثبات غالبًا مسألة استشفاء لا مجهود. ابقِ الوزن كما هو لأسبوع وزد '
+              'التكرارات بدلًا منه، وتأكد من نومك، واحرص أن تكون المجموعة '
+              'الأخيرة قريبة فعلًا من الإجهاد.'
+          : 'A stall usually means recovery, not effort. Hold the weight for a '
+              'week and add reps instead, check you are sleeping enough, and '
+              'make sure the last set is genuinely close to failure.';
     } else if (m.contains('week') ||
         m.contains('split') ||
         m.contains('program') ||
-        m.contains('plan')) {
-      body = 'Keep the structure simple: train each muscle group about twice a '
-          'week, take most working sets close to failure, and let your logged '
-          'numbers tell you when to add weight.';
-    } else if (m.contains('rest') || m.contains('recover')) {
-      body = 'Rest two to three minutes on heavy compounds and about ninety '
-          'seconds on accessories. If your next set drops by more than a rep or '
-          'two, you rested too little.';
+        m.contains('plan') ||
+        m.contains('أسبوع') ||
+        m.contains('برنامج') ||
+        m.contains('خطة')) {
+      body = ar
+          ? 'أبقِ الهيكل بسيطًا: درّب كل مجموعة عضلية مرتين أسبوعيًا تقريبًا، '
+              'واجعل معظم المجموعات قريبة من الإجهاد، ودع أرقامك المسجّلة تخبرك '
+              'متى تزيد الوزن.'
+          : 'Keep the structure simple: train each muscle group about twice a '
+              'week, take most working sets close to failure, and let your '
+              'logged numbers tell you when to add weight.';
+    } else if (m.contains('rest') ||
+        m.contains('recover') ||
+        m.contains('راحة') ||
+        m.contains('استشفاء')) {
+      body = ar
+          ? 'استرح دقيقتين إلى ثلاث في التمارين المركّبة الثقيلة، وحوالي تسعين '
+              'ثانية في التمارين المساعدة. إذا انخفضت مجموعتك التالية بأكثر من '
+              'تكرار أو اثنين فقد استرحت أقل من اللازم.'
+          : 'Rest two to three minutes on heavy compounds and about ninety '
+              'seconds on accessories. If your next set drops by more than a '
+              'rep or two, you rested too little.';
     } else {
-      body = 'Train each muscle group about twice a week, push most sets close '
-          'to failure, and add weight only once you are hitting the top of your '
-          'rep range with good form.';
+      body = ar
+          ? 'درّب كل مجموعة عضلية مرتين أسبوعيًا تقريبًا، وادفع معظم المجموعات '
+              'قريبًا من الإجهاد، ولا تزد الوزن إلا بعد أن تصل إلى أعلى نطاق '
+              'التكرارات بأداء سليم.'
+          : 'Train each muscle group about twice a week, push most sets close '
+              'to failure, and add weight only once you are hitting the top of '
+              'your rep range with good form.';
     }
-    return '$body\n\n$kDemoNote';
+    return '$body\n\n$_note';
   }
 }
 

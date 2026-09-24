@@ -1,3 +1,4 @@
+import '../localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -308,7 +309,7 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
       appBar: AppBar(),
       body: Center(
         child: Text(
-          "We couldn't find that page.",
+          context.l10n.t('routeNotFound'),
           style: Theme.of(context).textTheme.bodyLarge,
         ),
       ),

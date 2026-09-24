@@ -74,7 +74,7 @@ class ProfileScreen extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.only(top: AppSpacing.xs),
                             child: Text(
-                              'Email not confirmed',
+                              context.l10n.t('emailNotConfirmed'),
                               style: theme.textTheme.labelSmall
                                   ?.copyWith(color: context.fitColors.warning),
                             ),
@@ -456,19 +456,16 @@ class _DemoSectionState extends ConsumerState<_DemoSection> {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: const Text('Reset demo data?'),
-        content: const Text(
-          'Workouts, meals, habits and anything else you changed in the demo '
-          'will go back to the bundled sample data. This cannot be undone.',
-        ),
+        title: Text(context.l10n.t('demoResetTitle')),
+        content: Text(context.l10n.t('demoResetBody')),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.t('cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Reset'),
+            child: Text(context.l10n.t('reset')),
           ),
         ],
       ),
@@ -479,7 +476,7 @@ class _DemoSectionState extends ConsumerState<_DemoSection> {
       await ref.read(demoControllerProvider.notifier).resetData();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Demo data reset.')),
+          SnackBar(content: Text(context.l10n.t('demoResetDone'))),
         );
       }
     } finally {
@@ -510,15 +507,15 @@ class _DemoSectionState extends ConsumerState<_DemoSection> {
     final String? path = picked?.files.single.path;
     if (path == null) return;
     setState(() => _busy = true);
-    String message = 'Backup restored.';
+    String message = context.l10n.t('demoRestoreDone');
     try {
       await ref
           .read(demoControllerProvider.notifier)
           .importFromFile(File(path));
     } on FormatException {
-      message = "That file isn't a FitTrack backup. Nothing was changed.";
+      message = context.l10n.t('demoRestoreWrongFile');
     } on Object {
-      message = 'Could not read that backup. Nothing was changed.';
+      message = context.l10n.t('demoRestoreFailed');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -544,24 +541,24 @@ class _DemoSectionState extends ConsumerState<_DemoSection> {
           OutlinedButton.icon(
             onPressed: _busy ? null : _export,
             icon: const Icon(Icons.ios_share_rounded, size: 18),
-            label: const Text('Export my data'),
+            label: Text(context.l10n.t('demoExport')),
           ),
           const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
             onPressed: _busy ? null : _restore,
             icon: const Icon(Icons.restore_rounded, size: 18),
-            label: const Text('Restore from a backup'),
+            label: Text(context.l10n.t('demoRestore')),
           ),
           const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
             onPressed: _busy ? null : _reset,
             icon: const Icon(Icons.restart_alt_rounded, size: 18),
-            label: const Text('Reset demo data'),
+            label: Text(context.l10n.t('demoReset')),
           ),
           const SizedBox(height: AppSpacing.sm),
           TextButton(
             onPressed: _busy ? null : _leave,
-            child: const Text('Leave demo mode'),
+            child: Text(context.l10n.t('demoLeave')),
           ),
           const SizedBox(height: AppSpacing.sm),
         ],
