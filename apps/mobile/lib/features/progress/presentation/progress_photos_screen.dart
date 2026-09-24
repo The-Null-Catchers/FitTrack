@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/widgets/progress_image.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -226,19 +226,7 @@ class _PhotoTile extends StatelessWidget {
         fit: StackFit.expand,
         children: <Widget>[
           if (photo.thumbnailUrl != null || photo.url != null)
-            CachedNetworkImage(
-              imageUrl: photo.thumbnailUrl ?? photo.url!,
-              fit: BoxFit.cover,
-              placeholder: (_, __) =>
-                  ColoredBox(color: theme.colorScheme.surfaceContainerHighest),
-              errorWidget: (_, __, ___) => ColoredBox(
-                color: theme.colorScheme.surfaceContainerHighest,
-                child: Icon(
-                  Icons.broken_image_outlined,
-                  color: context.fitColors.textMuted,
-                ),
-              ),
-            )
+            ProgressImage(url: photo.thumbnailUrl ?? photo.url!)
           else
             ColoredBox(color: theme.colorScheme.surfaceContainerHighest),
           Positioned(

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/demo/demo_mode.dart';
+import '../../../core/demo/demo_widgets.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/providers.dart';
 import '../../../core/router/app_router.dart';
@@ -47,11 +49,17 @@ class ShellScreen extends ConsumerWidget {
     final SyncState sync = ref.watch(syncProvider);
     final WorkoutSession? activeWorkout =
         ref.watch(activeWorkoutProvider).session;
+    final bool isDemo = ref.watch(isDemoProvider);
 
     return Scaffold(
       body: Column(
         children: <Widget>[
-          if (!isOnline) OfflineBanner(pendingChanges: sync.pendingCount),
+          // Demo mode replaces the offline banner: in demo mode being offline
+          // is the normal, expected state, so the offline warning would be noise.
+          if (isDemo)
+            const DemoBanner()
+          else if (!isOnline)
+            OfflineBanner(pendingChanges: sync.pendingCount),
           Expanded(child: child),
           if (activeWorkout != null && location != '/active-workout')
             _ActiveWorkoutBar(session: activeWorkout),

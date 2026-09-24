@@ -61,4 +61,12 @@ class AppPreferences {
 
   Future<void> setRestTimerSound(bool value) =>
       _prefs.setBool(_restSoundKey, value);
+
+  /// Demo mode: the app runs entirely on bundled data, with no account and no
+  /// network. Persisted, so reopening the app lands back in the demo.
+  bool get demoMode => _prefs.getBool(_demoKey) ?? false;
+
+  Future<void> setDemoMode(bool value) => _prefs.setBool(_demoKey, value);
+
+  static const String _demoKey = 'fittrack.demo_mode';
 }

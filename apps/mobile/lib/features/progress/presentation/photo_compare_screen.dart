@@ -1,7 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/progress_image.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -174,20 +174,7 @@ class _ComparePane extends StatelessWidget {
                       color:
                           Theme.of(context).colorScheme.surfaceContainerHighest,
                     )
-                  : CachedNetworkImage(
-                      imageUrl: photo.url!,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => ColoredBox(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
-                      ),
-                      errorWidget: (_, __, ___) => ColoredBox(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
-                      ),
-                    ),
+                  : ProgressImage(url: photo.url!),
             ),
           ),
         ),

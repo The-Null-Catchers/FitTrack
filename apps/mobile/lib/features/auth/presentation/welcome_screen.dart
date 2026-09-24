@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/demo/demo_widgets.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -61,6 +62,8 @@ class WelcomeScreen extends ConsumerWidget {
                 onPressed: () => context.goNamed(Routes.login),
                 child: Text(l10n.t('authSignIn')),
               ),
+              const SizedBox(height: AppSpacing.lg),
+              const DemoModeButton(),
               const SizedBox(height: AppSpacing.lg),
             ],
           ),

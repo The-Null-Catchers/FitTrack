@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+import '../../../core/demo/demo_mode.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/notifications/local_reminders.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_toast.dart';
@@ -53,6 +57,8 @@ class NotificationSettingsScreen extends ConsumerWidget {
               ),
             ),
             const Divider(),
+            const _DailyReminderTile(),
+            const Divider(),
             ListTile(
               title: Text(l10n.t('notificationsQuietHours')),
               subtitle: Text(
@@ -83,5 +89,105 @@ class NotificationSettingsScreen extends ConsumerWidget {
         AppToast.error(context, context.l10n.t('errorSaveFailed'));
       }
     }
+  }
+}
+
+/// A reminder the phone itself delivers — no server, no account, no network.
+///
+/// The switch only turns on once the OS has actually accepted the schedule, so
+/// it never claims a reminder is set when it is not.
+class _DailyReminderTile extends ConsumerStatefulWidget {
+  const _DailyReminderTile();
+
+  @override
+  ConsumerState<_DailyReminderTile> createState() => _DailyReminderTileState();
+}
+
+class _DailyReminderTileState extends ConsumerState<_DailyReminderTile> {
+  bool _on = false;
+  bool _busy = false;
+  TimeOfDay _time = const TimeOfDay(hour: 18, minute: 0);
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    final List<PendingNotificationRequest> pending =
+        await ref.read(localRemindersProvider).pending().catchError(
+              (Object _) => <PendingNotificationRequest>[],
+            );
+    if (!mounted) return;
+    setState(() => _on = pending.any((PendingNotificationRequest r) =>
+        r.id == LocalReminders.workoutReminderId));
+  }
+
+  Future<void> _toggle(bool value) async {
+    setState(() => _busy = true);
+    final LocalReminders reminders = ref.read(localRemindersProvider);
+    String? problem;
+    try {
+      if (!value) {
+        await reminders.cancel(LocalReminders.workoutReminderId);
+      } else if (!await reminders.requestPermission()) {
+        problem = 'Notifications are turned off for FitTrack, so the reminder '
+            'would not appear. Enable them in system settings and try again.';
+      } else {
+        final bool ok = await reminders.scheduleDaily(
+          id: LocalReminders.workoutReminderId,
+          title: 'Time to train',
+          body: 'Your FitTrack session is waiting.',
+          hour: _time.hour,
+          minute: _time.minute,
+        );
+        if (!ok) problem = 'The system refused to schedule the reminder.';
+      }
+    } on Object {
+      problem = 'Reminders are not available on this device.';
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    await _refresh();
+    if (problem != null && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(problem)));
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final TimeOfDay? picked =
+        await showTimePicker(context: context, initialTime: _time);
+    if (picked == null) return;
+    setState(() => _time = picked);
+    if (_on) await _toggle(true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool demo = ref.watch(isDemoProvider);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        SwitchListTile(
+          title: const Text('Daily workout reminder'),
+          subtitle: Text(
+            demo
+                ? 'Delivered by this phone. Works offline.'
+                : 'Delivered by this phone at ${_time.format(context)}.',
+          ),
+          value: _on,
+          onChanged: _busy ? null : _toggle,
+        ),
+        ListTile(
+          enabled: !_busy,
+          title: const Text('Reminder time'),
+          subtitle: Text(_time.format(context)),
+          trailing: const Icon(Icons.schedule_outlined),
+          onTap: _busy ? null : _pickTime,
+        ),
+      ],
+    );
   }
 }
