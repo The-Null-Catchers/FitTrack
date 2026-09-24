@@ -76,10 +76,20 @@ jobs:
           # Size only — never the contents.
           echo "keystore bytes: $(stat -c%s "$RUNNER_TEMP/signing/release.jks")"
 
+      # The input reaches the shell through the environment, never through
+      # template interpolation: `${{ }}` is substituted into the script before
+      # bash parses it, so an input carrying shell metacharacters would run as
+      # code. Dispatch already requires write access, but this keeps the input
+      # as data and rejects anything that is not a dotted version number.
       - name: Set the version name
         if: ${{ inputs.version_name != '' }}
+        env:
+          VERSION_NAME: ${{ inputs.version_name }}
         run: |
-          sed -i -E "s/^version: [^+]+\+/version: ${{ inputs.version_name }}+/" pubspec.yaml
+          case "$VERSION_NAME" in
+            *[!0-9.]*|''|.*|*.) echo "::error::version_name must look like 1.0.1"; exit 1 ;;
+          esac
+          sed -i -E "s/^version: [^+]+\+/version: ${VERSION_NAME}+/" pubspec.yaml
           grep '^version:' pubspec.yaml
 
       # versionCode comes from the build number in pubspec (the part after +)
