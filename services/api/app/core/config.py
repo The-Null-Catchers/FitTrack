@@ -126,8 +126,20 @@ class Settings(BaseSettings):
 
     @property
     def sync_database_url(self) -> str:
-        """Synchronous DSN, used by Alembic."""
-        return self.DATABASE_URL.replace("+asyncpg", "").replace("+aiosqlite", "")
+        """Synchronous DSN, used by Alembic.
+
+        The driver is named explicitly rather than left to SQLAlchemy's
+        default. A bare ``postgresql://`` resolved to psycopg2 under
+        SQLAlchemy 2.0 but resolves to psycopg 3 under 2.1, and this project
+        installs psycopg2-binary, so the default stopped matching what is
+        installed the first time a build resolved SQLAlchemy 2.1.
+        """
+        url = self.DATABASE_URL.replace("+asyncpg", "").replace("+aiosqlite", "")
+        if url.startswith("postgresql://"):
+            url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+        elif url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+        return url
 
 
 @lru_cache
