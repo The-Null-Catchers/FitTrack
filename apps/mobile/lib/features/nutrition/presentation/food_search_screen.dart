@@ -216,7 +216,11 @@ class _PortionSheetState extends State<_PortionSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(widget.food.name, style: theme.textTheme.titleMedium),
+          Text(
+            widget.food
+                .displayName(Localizations.localeOf(context).languageCode),
+            style: theme.textTheme.titleMedium,
+          ),
           const SizedBox(height: AppSpacing.lg),
           if (widget.food.servingOptions.isNotEmpty) ...<Widget>[
             Wrap(
