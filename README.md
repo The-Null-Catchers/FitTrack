@@ -7,7 +7,7 @@
 Workouts, programs, nutrition, body metrics, goals, habits, progress analytics
 and an AI coach, built offline-first.
 
-[![CI](https://github.com/Archipelago-alt/FitTrack/actions/workflows/ci.yml/badge.svg)](https://github.com/Archipelago-alt/FitTrack/actions/workflows/ci.yml)
+[![CI](https://github.com/The-Null-Catchers/FitTrack/actions/workflows/ci.yml/badge.svg)](https://github.com/The-Null-Catchers/FitTrack/actions/workflows/ci.yml)
 
 </div>
 
