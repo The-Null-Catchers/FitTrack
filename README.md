@@ -212,7 +212,7 @@ fittrack/
 ### The whole stack
 
 ```bash
-git clone https://github.com/Archipelago-alt/FitTrack.git
+git clone https://github.com/The-Null-Catchers/FitTrack.git
 cd FitTrack
 cp .env.example .env          # safe defaults; nothing secret is committed
 docker compose up -d
