@@ -4,7 +4,7 @@
 #
 # Differences from the development stack: images come from a registry rather
 # than a local build, nothing is bind-mounted, ports are not published except
-# through nginx, and secrets come from the environment with no defaults.
+# through nginx, and secrets and immutable, published image references come from the environment with no defaults.
 name: fittrack
 
 services:
@@ -21,7 +21,7 @@ services:
     restart: always
 
   api:
-    image: ${API_IMAGE:-ghcr.io/archipelago-alt/fittrack-api:latest}
+    image: ${API_IMAGE:?API_IMAGE is required}
     build: !reset null
     ports: []
     environment:
@@ -49,7 +49,7 @@ services:
           memory: 1g
 
   worker:
-    image: ${API_IMAGE:-ghcr.io/archipelago-alt/fittrack-api:latest}
+    image: ${API_IMAGE:?API_IMAGE is required}
     build: !reset null
     environment:
       ENVIRONMENT: production
@@ -61,7 +61,7 @@ services:
     restart: always
 
   admin:
-    image: ${ADMIN_IMAGE:-ghcr.io/archipelago-alt/fittrack-admin:latest}
+    image: ${ADMIN_IMAGE:?ADMIN_IMAGE is required}
     build: !reset null
     ports: []
     restart: always
