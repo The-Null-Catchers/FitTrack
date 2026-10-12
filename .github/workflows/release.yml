@@ -73,6 +73,8 @@ jobs:
   android:
     name: Build the Android app
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create/update a GitHub Release for v* tags
     defaults:
       run:
         working-directory: apps/mobile
