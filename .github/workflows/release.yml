@@ -9,6 +9,7 @@ on:
 env:
   FLUTTER_VERSION: "3.27.4"
   REGISTRY: ghcr.io
+  HAS_ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
 
 jobs:
   images:
@@ -98,7 +99,7 @@ jobs:
         # Signed builds happen only when the secrets exist; forks and PRs fall
         # back to a debug-signed APK. No key material is ever committed.
         id: signing
-        if: env.KEYSTORE_BASE64 != ''
+        if: ${{ env.HAS_ANDROID_KEYSTORE == 'true' }}
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
