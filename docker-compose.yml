@@ -60,41 +60,36 @@ services:
       timeout: 3s
       retries: 10
 
-  # S3-compatible object storage for avatars, exercise media and progress photos.
-  # Pulled from quay.io, which is where MinIO publishes: the Docker Hub
-  # repositories (minio/minio, minio/mc) have been withdrawn and no longer
-  # resolve at all.
+  # Source-built, commit-pinned MinIO avoids withdrawn/restricted binary image registries.
   minio:
-    image: quay.io/minio/minio:RELEASE.2024-09-22T00-33-43Z
+    build:
+      context: .
+      dockerfile: infra/docker/minio.Dockerfile
     command: ["server", "/data", "--console-address", ":9001"]
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY:-fittrack}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-fittrack-dev-secret}
     ports:
-      - "${MINIO_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "127.0.0.1:${MINIO_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio-data:/data
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
 
-  # Creates the bucket on first run, then exits.
+  # Reuse the API image's boto3 client to initialize the bucket after MinIO starts.
   minio-init:
-    image: quay.io/minio/mc:RELEASE.2024-09-16T17-43-14Z
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    entrypoint: ["python", "/bootstrap/init_minio.py"]
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-fittrack}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-fittrack-dev-secret}
+      S3_BUCKET: ${S3_BUCKET:-fittrack}
+    volumes:
+      - ./infra/docker/init_minio.py:/bootstrap/init_minio.py:ro
     depends_on:
       minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set local http://minio:9000 ${S3_ACCESS_KEY:-fittrack} ${S3_SECRET_KEY:-fittrack-dev-secret} &&
-      mc mb --ignore-existing local/${S3_BUCKET:-fittrack} &&
-      mc anonymous set download local/${S3_BUCKET:-fittrack}/exercise-media &&
-      mc anonymous set download local/${S3_BUCKET:-fittrack}/avatars &&
-      echo 'Bucket ready.'
-      "
+        condition: service_started
     restart: "no"
 
   api:
@@ -111,7 +106,7 @@ services:
       redis:
         condition: service_healthy
       minio:
-        condition: service_healthy
+        condition: service_started
     volumes:
       - api-storage:/srv/app/var/storage
     restart: unless-stopped
