@@ -1,0 +1,71 @@
+{
+  "repository": "The-Null-Catchers/FitTrack",
+  "defaultBranch": "main",
+  "baseSHA": "3109fa9c01a3412c638916bb99860dfb379cd9f3",
+  "backupTag": "cleanup-backup-2026-11-16",
+  "delete": [
+    {
+      "name": "ci/enforce-lockfile-install-20261011",
+      "sha": "047e87890e0c0d752b5df0066e185978b786398d",
+      "reason": "equivalent"
+    },
+    {
+      "name": "ci/fix-android-release-signing-gate-20261012",
+      "sha": "7fec9520a2fe4c9abedfcabadfce13a4b8eec222",
+      "reason": "equivalent"
+    },
+    {
+      "name": "ci/guard-tag-release-signing-20261012",
+      "sha": "4d5cf8bc5cdd57be40164b0e5589256610ded12c",
+      "reason": "equivalent"
+    },
+    {
+      "name": "ci/release-tag-write-permission-20261012",
+      "sha": "ed62e1fe1e222065ac5202ccd0fb34a1301f3087",
+      "reason": "equivalent"
+    },
+    {
+      "name": "ci/upgrade-github-actions-node24-20261012",
+      "sha": "e480aef62623e8f0cedee2c510aa48c65f624973",
+      "reason": "equivalent"
+    },
+    {
+      "name": "ci/upgrade-release-checkout-20261012",
+      "sha": "1a66040d42f31c69c35875275ba114568c69b9e3",
+      "reason": "equivalent"
+    },
+    {
+      "name": "ci/verify-android-signing-certificate-20261013",
+      "sha": "323a23a354db745366ce29562c1d87dd4f60dc86",
+      "reason": "equivalent"
+    },
+    {
+      "name": "docs/fix-ci-badge-owner-20261011",
+      "sha": "83cbb4e7d0af9ef64a0f24f3e326f806de03fef3",
+      "reason": "equivalent"
+    },
+    {
+      "name": "docs/fix-clone-url-20261012",
+      "sha": "b8948a872b557202b23040676871119c9a5ac9ad",
+      "reason": "equivalent"
+    },
+    {
+      "name": "fix/android-release-signing-env-20261012",
+      "sha": "1e15652a7b966e1998b6ae28302592ed2707314d",
+      "reason": "equivalent"
+    }
+  ],
+  "status": "Explicitly approved: archive before lease-guarded deletion",
+  "archiveParents": [
+    "047e87890e0c0d752b5df0066e185978b786398d",
+    "7fec9520a2fe4c9abedfcabadfce13a4b8eec222",
+    "4d5cf8bc5cdd57be40164b0e5589256610ded12c",
+    "ed62e1fe1e222065ac5202ccd0fb34a1301f3087",
+    "e480aef62623e8f0cedee2c510aa48c65f624973",
+    "1a66040d42f31c69c35875275ba114568c69b9e3",
+    "323a23a354db745366ce29562c1d87dd4f60dc86",
+    "83cbb4e7d0af9ef64a0f24f3e326f806de03fef3",
+    "b8948a872b557202b23040676871119c9a5ac9ad",
+    "1e15652a7b966e1998b6ae28302592ed2707314d"
+  ]
+}
