@@ -33,8 +33,8 @@ import 'package:fittrack/features/auth/application/auth_controller.dart';
 /// widgets against the bundled data, so what comes out is the real layout with
 /// the real translations.
 ///
-/// It is skipped unless a destination is given, so CI does not spend time on
-/// it and no images are committed:
+/// It is skipped unless a destination is given. CI runs it explicitly and
+/// publishes the rendered images as a workflow artifact:
 ///
 ///   FITTRACK_SCREENSHOT_DIR=/tmp/shots flutter test test/tools/render_screens_test.dart
 ///
@@ -234,7 +234,9 @@ void main() {
 /// A font the test renderer can actually draw with, including Arabic. The
 /// platform font is not available under `flutter test`.
 Future<void> _loadFonts() async {
-  const Map<String, List<String>> families = <String, List<String>>{
+  final String flutterRoot =
+      Platform.environment['FLUTTER_ROOT'] ?? '/opt/flutter';
+  final Map<String, List<String>> families = <String, List<String>>{
     // Covers Arabic as well as Latin; the phone's own font is not available
     // to the test renderer.
     'DejaVuSans': <String>[
@@ -243,7 +245,7 @@ Future<void> _loadFonts() async {
     ],
     // Otherwise every icon draws as an empty box.
     'MaterialIcons': <String>[
-      '/opt/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+      '$flutterRoot/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
     ],
   };
   for (final MapEntry<String, List<String>> entry in families.entries) {
