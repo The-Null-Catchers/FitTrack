@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/demo/demo_mode.dart';
 import '../../../core/providers.dart';
 import '../../exercises/domain/exercise.dart';
 import '../data/progress_repository.dart';
@@ -20,8 +21,9 @@ final FutureProvider<DashboardData> dashboardProvider =
 });
 
 /// The selected time range, shared by every chart on the progress tab.
-final StateProvider<String> chartRangeProvider =
-    StateProvider<String>((Ref ref) => '30d');
+final StateProvider<String> chartRangeProvider = StateProvider<String>(
+  (Ref ref) => ref.watch(isDemoProvider) ? 'all' : '30d',
+);
 
 const List<String> chartRanges = <String>['7d', '30d', '3m', '6m', '1y', 'all'];
 

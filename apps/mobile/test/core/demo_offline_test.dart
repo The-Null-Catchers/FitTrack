@@ -119,6 +119,25 @@ void main() {
     );
   }
 
+  test('three-month charts include a weight logged 60 days ago', () async {
+    final DateTime past = DateTime.now().subtract(const Duration(days: 60));
+    final String recordedOn = past.toIso8601String().split('T').first;
+    await dio.post<dynamic>('/api/v1/progress/weights',
+        data: <String, dynamic>{'weight_kg': 77.7, 'recorded_on': recordedOn});
+
+    const String path = '/api/v1/progress/charts/weight';
+    final ChartData month = ChartData.fromJson(
+        await getMap(path, <String, dynamic>{'range': '30d'}));
+    final ChartData quarter = ChartData.fromJson(
+        await getMap(path, <String, dynamic>{'range': '3m'}));
+
+    final DateTime loggedDate = DateTime.parse(recordedOn);
+    expect(month.series.single.points.map((SeriesPoint p) => p.x),
+        isNot(contains(loggedDate)));
+    expect(quarter.series.single.points.map((SeriesPoint p) => p.x),
+        contains(loggedDate));
+  });
+
   // --- durability ----------------------------------------------------------
 
   group('changes survive closing and reopening the app', () {
