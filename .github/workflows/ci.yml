@@ -171,6 +171,26 @@ jobs:
       - name: Tests
         run: flutter test --coverage
 
+      - name: Render bilingual portfolio screenshots
+        env:
+          FITTRACK_PORTFOLIO: "1"
+          FITTRACK_SCREENSHOT_DIR: ${{ runner.temp }}/fittrack-portfolio
+        run: |
+          flutter test test/tools/render_screens_test.dart
+          for language in ar en; do
+            for screen in home workout nutrition progress; do
+              test -s "$FITTRACK_SCREENSHOT_DIR/$language-412x915/$screen.png"
+            done
+          done
+
+      - name: Upload portfolio screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: fittrack-portfolio-screenshots
+          path: ${{ runner.temp }}/fittrack-portfolio
+          if-no-files-found: error
+          retention-days: 30
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

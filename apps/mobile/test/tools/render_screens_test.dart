@@ -33,8 +33,8 @@ import 'package:fittrack/features/auth/application/auth_controller.dart';
 /// widgets against the bundled data, so what comes out is the real layout with
 /// the real translations.
 ///
-/// It is skipped unless a destination is given, so CI does not spend time on
-/// it and no images are committed:
+/// It is skipped unless a destination is given. CI runs it explicitly and
+/// publishes the rendered images as a workflow artifact:
 ///
 ///   FITTRACK_SCREENSHOT_DIR=/tmp/shots flutter test test/tools/render_screens_test.dart
 ///
@@ -47,6 +47,9 @@ const List<_Shot> _shots = <_Shot>[
   _Shot('workout', '/workout'),
   _Shot('nutrition', '/nutrition'),
   _Shot('progress', '/progress'),
+];
+
+const List<_Shot> _additionalShots = <_Shot>[
   _Shot('profile', '/profile'),
   _Shot('programs', '/programs'),
   _Shot('exercises', '/exercises'),
@@ -125,6 +128,11 @@ class _Harness extends ConsumerWidget {
 
 void main() {
   final String? outRoot = Platform.environment['FITTRACK_SCREENSHOT_DIR'];
+  final bool portfolioOnly = Platform.environment['FITTRACK_PORTFOLIO'] == '1';
+  final List<_Shot> shots = <_Shot>[
+    ..._shots,
+    if (!portfolioOnly) ..._additionalShots,
+  ];
 
   // Fonts are registered once, from `setUpAll`, which runs outside the test's
   // fake clock. `FontLoader.load()` waits on the engine, so it cannot complete
@@ -182,6 +190,7 @@ void main() {
             built = ProviderContainer(
               overrides: <Override>[
                 appDatabaseProvider.overrideWithValue(database),
+                isOnlineProvider.overrideWithValue(true),
                 appPreferencesProvider
                     .overrideWithValue(await AppPreferences.create()),
               ],
@@ -217,7 +226,7 @@ void main() {
 
           stage('first frame settled');
           final GoRouter router = container.read(routerProvider);
-          for (final _Shot shot in _shots) {
+          for (final _Shot shot in shots) {
             router.go(shot.location);
             await _settle(tester);
             await _write(tester, boundaryKey, '${out.path}/${shot.name}.png');
@@ -234,7 +243,9 @@ void main() {
 /// A font the test renderer can actually draw with, including Arabic. The
 /// platform font is not available under `flutter test`.
 Future<void> _loadFonts() async {
-  const Map<String, List<String>> families = <String, List<String>>{
+  final String flutterRoot =
+      Platform.environment['FLUTTER_ROOT'] ?? '/opt/flutter';
+  final Map<String, List<String>> families = <String, List<String>>{
     // Covers Arabic as well as Latin; the phone's own font is not available
     // to the test renderer.
     'DejaVuSans': <String>[
@@ -243,7 +254,7 @@ Future<void> _loadFonts() async {
     ],
     // Otherwise every icon draws as an empty box.
     'MaterialIcons': <String>[
-      '/opt/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+      '$flutterRoot/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
     ],
   };
   for (final MapEntry<String, List<String>> entry in families.entries) {
