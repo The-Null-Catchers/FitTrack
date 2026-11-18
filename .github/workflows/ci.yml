@@ -173,6 +173,7 @@ jobs:
 
       - name: Render bilingual portfolio screenshots
         env:
+          FITTRACK_PORTFOLIO: "1"
           FITTRACK_SCREENSHOT_DIR: ${{ runner.temp }}/fittrack-portfolio
         run: |
           flutter test test/tools/render_screens_test.dart
