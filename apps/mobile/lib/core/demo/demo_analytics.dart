@@ -91,7 +91,7 @@ class DemoAnalytics {
   static int rangeDays(String range) => switch (range) {
         '7d' => 7,
         '30d' => 30,
-        '90d' => 90,
+        '3m' || '90d' => 90,
         '6m' => 180,
         '180d' => 180,
         '1y' => 365,
