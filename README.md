@@ -461,3 +461,7 @@ drift out of sync.
 ## Licence
 
 MIT. See [`LICENSE`](LICENSE).
+
+## Portfolio roadmap
+
+See the [repository-specific portfolio roadmap](PORTFOLIO_ROADMAP.md) for priorities, acceptance criteria, demo scope, and release evidence. This complements the existing implementation and status documentation.
