@@ -64,11 +64,18 @@ Everything works in English and Arabic, light and dark.
 
 ## Screenshots
 
-> Add screenshots to `docs/screenshots/` and reference them here.
+Open a successful [CI run](https://github.com/The-Null-Catchers/FitTrack/actions/workflows/ci.yml)
+and download the `fittrack-portfolio-screenshots` artifact. The `ar-412x915`
+and `en-412x915` folders include Home, Workout, Nutrition, and Progress rendered
+by Flutter with bundled synthetic demo data and a substitute font. The artifact
+is retained for 30 days.
 
-| Home | Workout | Nutrition | Progress |
-| --- | --- | --- | --- |
-| _`docs/screenshots/home.png`_ | _`docs/screenshots/workout.png`_ | _`docs/screenshots/nutrition.png`_ | _`docs/screenshots/progress.png`_ |
+To render the same screens locally, run from `apps/mobile` after `flutter pub get`
+on a Linux machine with DejaVu Sans and SQLite installed:
+
+```sh
+FITTRACK_SCREENSHOT_DIR=/tmp/fittrack-portfolio flutter test test/tools/render_screens_test.dart
+```
 
 Run `docker compose up -d && docker compose run --rm api seed --demo`, sign in
 as the demo user, and every screen is populated with twelve weeks of history.
