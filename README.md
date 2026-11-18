@@ -74,7 +74,8 @@ To render the same screens locally, run from `apps/mobile` after `flutter pub ge
 on a Linux machine with DejaVu Sans and SQLite installed:
 
 ```sh
-FITTRACK_SCREENSHOT_DIR=/tmp/fittrack-portfolio flutter test test/tools/render_screens_test.dart
+FITTRACK_PORTFOLIO=1 FITTRACK_SCREENSHOT_DIR=/tmp/fittrack-portfolio \
+  flutter test test/tools/render_screens_test.dart
 ```
 
 Run `docker compose up -d && docker compose run --rm api seed --demo`, sign in
