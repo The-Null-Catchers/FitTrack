@@ -47,6 +47,9 @@ const List<_Shot> _shots = <_Shot>[
   _Shot('workout', '/workout'),
   _Shot('nutrition', '/nutrition'),
   _Shot('progress', '/progress'),
+];
+
+const List<_Shot> _additionalShots = <_Shot>[
   _Shot('profile', '/profile'),
   _Shot('programs', '/programs'),
   _Shot('exercises', '/exercises'),
@@ -125,6 +128,11 @@ class _Harness extends ConsumerWidget {
 
 void main() {
   final String? outRoot = Platform.environment['FITTRACK_SCREENSHOT_DIR'];
+  final bool portfolioOnly = Platform.environment['FITTRACK_PORTFOLIO'] == '1';
+  final List<_Shot> shots = <_Shot>[
+    ..._shots,
+    if (!portfolioOnly) ..._additionalShots,
+  ];
 
   // Fonts are registered once, from `setUpAll`, which runs outside the test's
   // fake clock. `FontLoader.load()` waits on the engine, so it cannot complete
@@ -182,6 +190,7 @@ void main() {
             built = ProviderContainer(
               overrides: <Override>[
                 appDatabaseProvider.overrideWithValue(database),
+                isOnlineProvider.overrideWithValue(true),
                 appPreferencesProvider
                     .overrideWithValue(await AppPreferences.create()),
               ],
@@ -217,7 +226,7 @@ void main() {
 
           stage('first frame settled');
           final GoRouter router = container.read(routerProvider);
-          for (final _Shot shot in _shots) {
+          for (final _Shot shot in shots) {
             router.go(shot.location);
             await _settle(tester);
             await _write(tester, boundaryKey, '${out.path}/${shot.name}.png');
