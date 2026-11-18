@@ -1,54 +1,52 @@
-# FitTrack — خطة البورتفيليو
+# FitTrack portfolio roadmap
 
-مرجع التقييم الأساسي: 17 نوفمبر 2026. تحديث نشر الخطة داخل المستودع: 18 نوفمبر 2026.
+Baseline reviewed on November 17, 2026. Repository roadmap published on November 18, 2026.
 
-الخطة خاصة بهذا المستودع، ومستخلصة من خطة Null Catchers المشتركة. وصف «الموجود الموثق» يعكس المراجعة بتاريخها؛ تحقّق من الكود ووثائق الحالة الحالية قبل إنشاء مهمة جديدة. لا تعِد تنفيذ ميزة موجودة، ولا تعتبر وجود تعريف CI دليلًا على نجاح تشغيله.
+This roadmap applies to this repository and follows the shared Null Catchers portfolio plan. Verify the documented state against the current code and runs before starting work.
 
-**تقدير شريحة العرض الأولى:** 18–30 ساعة. التقدير تخطيطي لمطور يعرف المشروع، ويستثني انتظار حسابات المتاجر والمراجعات الخارجية وتجهيز بيئة الهدف. لا يغطي جميع بنود P2.
+**Estimated initial demo effort** 18–30 hours for a developer familiar with the project. The estimate excludes external reviews, store accounts, target environment setup, and later milestones.
 
-## الأولويات الخاصة بالمشروع
+## Project priorities
 
-**الموجود الموثق:** تسجيل تمارين محلي، outbox/idempotency، تقدم وتغذية ومدرب بمزودات بديلة. ينتج CI لقطات ثنائية اللغة، ويحتاج سيناريو الانقطاع إلى تحقق على جهاز فعلي.
+**Documented state** The app logs workouts locally and uses an idempotent outbox. It includes progress, nutrition, and a coach with provider fallbacks. CI produces bilingual screenshots. A physical device still needs to verify the offline scenario.
 
-**P0 — نسخة العرض** أثبت استعادة تمرين بدأ دون شبكة ثم إرساله مرة واحدة بعد عودة الاتصال باستخدام جهاز فعلي.
+**P0 — Demo** Recover a workout started offline and sync it exactly once after reconnection.
 
-**P1 — تجربة منتج متماسكة:** اختبر المؤقت عند الخلفية/المقدمة، وواجهة اقتراح التقدم مقابل اختيار المستخدم، واللغة العربية والأرقام. قارن السجل المحلي بالخادم بعد retry أو انتهاء جلسة المصادقة؛ لا تجعل الهدف المقترح يكتب فوق هدف اختاره المستخدم.
+**P1 — Validation and depth** Test the timer across background and foreground transitions, Arabic labels and numbers, and suggestions alongside user-selected goals. Verify local and server records after retries or session expiry and preserve the user’s chosen goal.
 
-**P2 — لاحقًا:** supersets/circuits أولًا إذا دعمت السيناريو؛ barcode أو تكاملات الصحة بعد تثبيت النسخة الأساسية. لا يلزم social feed لنسخة العرض.
+**P2 — Later** Consider supersets or circuits first if they help the scenario, then barcode or health integrations.
 
-**معيار الإنجاز:** لا فقد ولا تكرار لتمرين بعد الانقطاع، لقطات حقيقية مرتبطة بإصدار، والادعاءات عن تطور اللياقة موسومة بأنها بيانات demo عندما تكون اصطناعية.
+**Acceptance criteria** The workout survives disconnection and syncs once. Evidence identifies the release and labels synthetic fitness data.
 
-**الديمو:** خطة تمرين → تسجيل دون شبكة → استعادة الجلسة → مزامنة → تقدم موضح. **الأدلة:** [README](https://github.com/The-Null-Catchers/FitTrack/blob/main/README.md).
+**Demo scenario** Workout plan → offline workout → restore the session → sync → review progress. [README](https://github.com/The-Null-Catchers/FitTrack/blob/main/README.md).
 
-## الدفعة التالية
+## Next milestones
 
-**ما ثبت حتى الآن**
+[PR #32](https://github.com/The-Null-Catchers/FitTrack/pull/32) added English and Arabic screenshots of Home, Workout, Nutrition, and Progress. [PR #33](https://github.com/The-Null-Catchers/FitTrack/pull/33) restored demo progress history and corrected the three-month range. [Screenshot instructions](README.md#screenshots).
 
-[PR #32](https://github.com/The-Null-Catchers/FitTrack/pull/32) أضاف لقطات Home وWorkout وNutrition وProgress بالعربية والإنجليزية. [PR #33](https://github.com/The-Null-Catchers/FitTrack/pull/33) أظهر سجل التقدّم في وضع العرض وصحّح فترة ثلاثة أشهر. [تعليمات إنتاج اللقطات](README.md#screenshots).
+1. [ ] On Android, start a workout in a test account, disconnect, log a set, and close and reopen the app. Confirm the set, values, and active session are restored.
+2. [ ] Reconnect, finish the workout, and retry sync. Confirm that one server record has the expected values and the outbox clears after acknowledgement.
+3. [ ] Capture the device walkthrough and Arabic progress screen. Record the device, app version, SHA, and synthetic data source.
 
-1. [ ] على Android، ابدأ تمرينًا في حساب اختبار، ثم اقطع الشبكة وسجّل مجموعة وأغلق التطبيق وافتحه. يُقبل البند عندما يستعيد التطبيق المجموعة وقيمها وحالة الجلسة من التخزين المحلي.
-2. [ ] أعد الاتصال وأكمل التمرين مع إعادة محاولة المزامنة. يُقبل البند عندما يوجد سجل تمرين واحد بالقيم المتوقعة في الخادم، وتفرغ قائمة الانتظار بعد التأكيد.
-3. [ ] وثّق المسار على الهاتف، مع لقطة التقدّم بالعربية. يُقبل البند عندما يسجل الدليل نوع الجهاز وإصدار التطبيق وSHA ويبيّن أن بيانات القياسات اصطناعية.
+## Portfolio acceptance checklist
 
-## بوابة قبول نسخة البورتفيليو
+- [ ] Another person can reproduce the primary workflow from a clean checkout using the README and test credentials or fixtures.
+- [ ] The demo tells one complete story with a defined user, problem, and saved result.
+- [ ] Tests cover the main flow, an important failure, and access boundaries when multiple accounts are involved.
+- [ ] Demo data is labeled synthetic and reproducible. Review screenshots and recordings for secrets and customer data.
+- [ ] Include four to six real screenshots where appropriate, a 60–120 second recording, and working links. Identify the revision used for capture.
+- [ ] The README describes implemented capabilities, setup, architecture, limits, tests, and the demo.
+- [ ] A short case study explains two engineering decisions, a considered alternative, and how the system handles an actual failure.
+- [ ] Release evidence records the commit SHA, CI, prerequisites, and limits. Performance data includes workload, hardware, and method.
+- [ ] Licensing and contributor attribution are settled before distribution. Choose the license for each repository individually.
 
-- [ ] يستطيع شخص آخر تشغيل المسار الرئيسي من checkout نظيف، باتباع README، دون أسرار شخصية.
-- [ ] توجد قصة واحدة مكتملة: مستخدم محدد، مشكلة محددة، ومسار بداية إلى نتيجة محفوظة.
-- [ ] ينجح اختبار للمسار الرئيسي وحالة فشل مهمة، وتُختبر حدود الصلاحيات حيث توجد حسابات متعددة.
-- [ ] توجد بيانات عرض اصطناعية معلنة، قابلة لإعادة الإنشاء؛ ولا توجد بيانات عملاء أو أسرار في اللقطات.
-- [ ] توجد 4–6 لقطات حقيقية أو العدد الملائم للأداة، وفيديو 60–120 ثانية، وروابط تعمل. تُلتقط الأدلة من إصدار معروف.
-- [ ] README يوضح المزايا الفعلية، طريقة التشغيل، الرسم المعماري، القيود، وروابط الاختبارات والديمو.
-- [ ] Case study قصيرة تشرح قرارين هندسيين، بديلًا جرى استبعاده ولماذا، وفشلًا حقيقيًا وكيف يعالجه النظام.
-- [ ] صفحة Release تسجل SHA وCI والمتطلبات والقيود. لا تُنشر أرقام أداء دون workload وعتاد وطريقة قياس.
-- [ ] حُسمت سياسة الترخيص ونسب المساهمات قبل التوزيع؛ لا نختار ترخيصًا تلقائيًا لجميع المستودعات.
+A hosted demo is optional. Code execution, server administration, and secret management can be demonstrated through a recording and a reproducible isolated environment. Keep public demo access scoped to the activities it needs.
 
-الديمو المستضاف مفيد وليس شرطًا لكل أداة. أدوات تنفيذ الكود وإدارة الخوادم والأسرار يمكن عرضها بفيديو وبيئة معزولة وتجربة محلية قابلة للإعادة. لا تفتح تنفيذًا عامًا غير محدود لمجرد وجود رابط بورتفيليو.
+## Implementation and follow-up
 
-## التنفيذ والمتابعة
-
-- حوّل P0 إلى مهام صغيرة، لكل منها سلوك متوقع ومعيار قبول واختبار مناسب.
-- ابدأ بتأكيد الموجود؛ عدّل هذه الخطة عندما يغلق بند بدليل مرتبط بcommit أو PR.
-- سجّل مصدر بيانات الديمو، والـSHA الذي التُقطت منه الأدلة، وحدود التجربة الفعلية.
-- راجع الفرق النهائي وانتظر نجاح الفحوص المطلوبة لنفس SHA قبل الدمج، مع احترام حماية الفرع.
-- إذا كان التعديل وثائق فقط ولا يوجد فحص ينطبق عليه، سجّل التحقق من محتواها وروابطها؛ لا تسجل اختبارات تشغيل لم تُنفّذ.
-- لا تُنشر أرقام أداء أو ادعاءات أمان أو جاهزية إنتاج بلا دليل مناسب.
+- Break P0 into tasks with expected behavior, acceptance criteria, and a suitable test.
+- Verify existing functionality first. Update this plan when evidence tied to a commit or PR closes a milestone.
+- Record the fixture source, the revision used for evidence, and the tested limits.
+- Review the final diff and verify required checks for its exact SHA before merging. Follow branch protection.
+- For documentation-only changes with no applicable workflow, verify content and links and record the checks actually performed.
+- Tie performance, security, and readiness claims to supporting evidence.
