@@ -83,6 +83,27 @@ void main() {
       expect(await outbox.pendingCount(), 0);
     });
 
+    test('acknowledging one operation keeps the other offline edits pending',
+        () async {
+      await outbox.enqueue(
+        clientUuid: 'workout-1',
+        entity: 'workout_session',
+        payload: <String, dynamic>{'sets': 1},
+      );
+      await outbox.enqueue(
+        clientUuid: 'workout-2',
+        entity: 'workout_session',
+        payload: <String, dynamic>{'sets': 2},
+      );
+
+      await outbox.markSynced('workout-1');
+
+      expect(await outbox.pendingCount(), 1);
+      final List<OutboxEntry> pending = await outbox.pending();
+      expect(pending.single.clientUuid, 'workout-2');
+      expect(pending.single.payload['sets'], 2);
+    });
+
     test('stays pending while retries remain, then parks as failed', () async {
       await outbox.enqueue(
         clientUuid: 'meal-1',
