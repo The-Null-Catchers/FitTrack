@@ -83,7 +83,8 @@ void main() {
       expect(await outbox.pendingCount(), 0);
     });
 
-    test('acknowledging one operation keeps the other offline edits pending', () async {
+    test('acknowledging one operation keeps the other offline edits pending',
+        () async {
       await outbox.enqueue(
         clientUuid: 'workout-1',
         entity: 'workout_session',
